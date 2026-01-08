@@ -1,9 +1,9 @@
 name: KataBump 自动续订
 
 on:
-  #  #schedu
-  #  -   #  - cron: '0 1,13 *# UTC 时间 = 北京时间 9:00, 21:00
-  workflow_dispatch:
+  schedule:
+    - cron: '15 4 * * *'  # 每天北京时间 13:18 运行
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   renew:

@@ -1,38 +1,37 @@
-name: KataBump Auto Renew
+name: Katabump Auto Renew
 
 on:
   schedule:
-    # 对应你脚本里的 cron: 0 9,21 * * *
-    # UTC 时间 1:00 和 13:00 (对应北京时间 9:00 和 21:00)
-    - cron: '0 1,13 * * *'
-  workflow_dispatch: # 允许手动点击按钮运行
+    - cron: '0 2 */3 * *'
+  workflow_dispatch:
 
 jobs:
-  renew:
+  renew_job:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
-      - name: Install dependencies
+      # 👇👇👇 这一步绝对不能少！没有它 DrissionPage 启动不了 👇👇👇
+      - name: Install Chrome
         run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          # 如果没有 requirements.txt，直接运行: pip install requests
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install Dependencies
+        run: pip install DrissionPage requests
 
       - name: Run Renew Script
         env:
-          # 将 GitHub Secrets 映射到环境变量
-          KATA_EMAIL: ${{ secrets.KATA_EMAIL }}
-          KATA_PASSWORD: ${{ secrets.KATA_PASSWORD }}
-          KATA_SERVER_ID: ${{ secrets.KATA_SERVER_ID }}
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_USER_ID: ${{ secrets.TG_USER_ID }}
-          EXECUTOR_NAME: 'GitHub Actions'
-        run: python katabump_renew.py
+          KB_EMAIL: ${{ secrets.KB_EMAIL }}
+          KB_PASSWORD: ${{ secrets.KB_PASSWORD }}
+          KB_RENEW_URL: ${{ secrets.KB_RENEW_URL }}
+        run: |
+          # 启动 Python (带 -u 参数实时输出)
+          python -u main.py

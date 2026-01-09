@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 KataBump 自动续订/提醒脚本
-作者：七转八起
 cron: 0 9,21 * * *
 new Env('KataBump续订');
 """
@@ -22,7 +21,19 @@ TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN', '')
 TG_CHAT_ID = os.environ.get('TG_USER_ID', '')
 
 # 执行器配置
-EXECUTOR_NAME = os.environ.get('EXECUTOR_NAME', 'https://ql.api.sld.tw')
+EXECUTOR_NAME = os.environ.get('EXECUTOR_NAME', 'GitHub Actions')
+
+# 新增：Renew 操作指南 HTML 模板
+RENEW_GUIDE_HTML = """
+📝 <b>Renew 操作指南:</b>
+1. 登录 <a href="https://dashboard.katabump.com/">Dashboard</a>
+2. 点击菜单栏 <b>Your Servers</b>
+3. 找到服务器点击 <b>See</b>
+4. 进入 <b>General</b> 页面
+5. 点击蓝色的 <b>Renew</b> 按钮
+
+🔗 <a href="https://dashboard.katabump.com/">点击此处直接跳转登录</a>
+"""
 
 def log(msg):
     tz = timezone(timedelta(hours=8))
@@ -36,7 +47,7 @@ def send_telegram(message):
     try:
         requests.post(
             f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage',
-            json={'chat_id': TG_CHAT_ID, 'text': message, 'parse_mode': 'HTML'},
+            json={'chat_id': TG_CHAT_ID, 'text': message, 'parse_mode': 'HTML', 'disable_web_page_preview': True},
             timeout=30
         )
         log('✅ Telegram 通知已发送')
@@ -124,10 +135,9 @@ def run():
         )
         
         log(f'📍 登录后URL: {login_resp.url}')
-        log(f'🍪 Cookies: {list(session.cookies.keys())}')
         
         if '/auth/login' in login_resp.url:
-            raise Exception('登录失败')
+            raise Exception('登录失败，请检查账号密码')
         
         log('✅ 登录成功')
         
@@ -145,16 +155,16 @@ def run():
         error, renew_date = parse_renew_error(url)
         if error:
             log(f'⏳ {error}')
-            
+            # 如果剩余天数少于2天且有错误（通常意味着需要手动介入或等待），发送带指南的通知
             if days is not None and days <= 2:
                 send_telegram(
-                    f'ℹ️ KataBump 续订提醒\n\n'
+                    f'ℹ️ <b>KataBump 续订提醒</b>\n\n'
                     f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                     f'📅 到期: {expiry}\n'
                     f'⏰ 剩余: {days} 天\n'
-                    f'📝 {error}\n'
+                    f'📝 状态: {error}\n'
                     f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                    f'👉 <a href="{DASHBOARD_URL}/servers/edit?id={SERVER_ID}">查看详情</a>'
+                    f'{RENEW_GUIDE_HTML}'
                 )
             return
         
@@ -188,7 +198,7 @@ def run():
                 
                 log('🎉 续订成功！')
                 send_telegram(
-                    f'✅ KataBump 续订成功\n\n'
+                    f'✅ <b>KataBump 续订成功</b>\n\n'
                     f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                     f'📅 原到期: {expiry}\n'
                     f'📅 新到期: {new_expiry}\n'
@@ -202,12 +212,13 @@ def run():
                 
                 if days is not None and days <= 2:
                     send_telegram(
-                        f'ℹ️ KataBump 续订提醒\n\n'
+                        f'ℹ️ <b>KataBump 续订受阻</b>\n\n'
                         f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                         f'📅 到期: {expiry}\n'
                         f'⏰ 剩余: {days} 天\n'
-                        f'📝 {error}\n'
-                        f'💻 执行器: {EXECUTOR_NAME}'
+                        f'📝 原因: {error}\n'
+                        f'💻 执行器: {EXECUTOR_NAME}\n\n'
+                        f'{RENEW_GUIDE_HTML}'
                     )
                 return
             
@@ -216,13 +227,13 @@ def run():
                 
                 if days is not None and days <= 2:
                     send_telegram(
-                        f'⚠️ KataBump 需要手动续订\n\n'
+                        f'⚠️ <b>KataBump 需要手动续订</b>\n\n'
                         f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                         f'📅 到期: {expiry}\n'
                         f'⏰ 剩余: {days} 天\n'
-                        f'❗ 自动续订需要验证码\n'
+                        f'❗ 原因: 自动续订检测到验证码\n'
                         f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                        f'👉 <a href="{DASHBOARD_URL}/servers/edit?id={SERVER_ID}">点击续订</a>'
+                        f'{RENEW_GUIDE_HTML}'
                     )
                 return
         
@@ -234,13 +245,13 @@ def run():
             
             if days is not None and days <= 2:
                 send_telegram(
-                    f'⚠️ KataBump 需要手动续订\n\n'
+                    f'⚠️ <b>KataBump 需要手动续订</b>\n\n'
                     f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                     f'📅 到期: {expiry}\n'
                     f'⏰ 剩余: {days} 天\n'
-                    f'❗ 自动续订需要验证码\n'
+                    f'❗ 原因: 自动续订检测到验证码\n'
                     f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                    f'👉 <a href="{DASHBOARD_URL}/servers/edit?id={SERVER_ID}">点击续订</a>'
+                    f'{RENEW_GUIDE_HTML}'
                 )
             return
         
@@ -251,7 +262,7 @@ def run():
         if new_expiry > expiry:
             log('🎉 续订成功！')
             send_telegram(
-                f'✅ KataBump 续订成功\n\n'
+                f'✅ <b>KataBump 续订成功</b>\n\n'
                 f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                 f'📅 原到期: {expiry}\n'
                 f'📅 新到期: {new_expiry}\n'
@@ -261,26 +272,26 @@ def run():
             log('⚠️ 续订状态未知')
             if days is not None and days <= 2:
                 send_telegram(
-                    f'⚠️ KataBump 请检查续订状态\n\n'
+                    f'⚠️ <b>KataBump 请检查续订状态</b>\n\n'
                     f'🖥 服务器: <code>{SERVER_ID}</code>\n'
                     f'📅 到期: {new_expiry}\n'
                     f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                    f'👉 <a href="{DASHBOARD_URL}/servers/edit?id={SERVER_ID}">查看详情</a>'
+                    f'{RENEW_GUIDE_HTML}'
                 )
     
     except Exception as e:
         log(f'❌ 错误: {e}')
         send_telegram(
-            f'❌ KataBump 出错\n\n'
+            f'❌ <b>KataBump 运行出错</b>\n\n'
             f'🖥 服务器: <code>{SERVER_ID}</code>\n'
-            f'❗ {e}\n'
-            f'💻 执行器: {EXECUTOR_NAME}'
+            f'❗ 错误信息: {e}\n'
+            f'💻 执行器: {EXECUTOR_NAME}\n\n'
+            f'{RENEW_GUIDE_HTML}'
         )
         raise
 
 
 def main():
-    send_telegram("🚀 KatabumpKeepAlive脚本启动通知")  # 添加这一行
     log('=' * 50)
     log('   KataBump 自动续订/提醒脚本')
     log('=' * 50)

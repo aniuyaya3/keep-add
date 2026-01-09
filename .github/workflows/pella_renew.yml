@@ -3,8 +3,6 @@ name: Pella Free 续期
 on:
   schedule:
     - cron: '18 1 * * *'  # 每天北京时间 09:18 运行
-    - cron: '15 5 * * *'  # 每天北京时间 13:18 运行
-    - cron: '18 16 * * *'  # 每天北京时间 00:18 运行
   workflow_dispatch:  # 允许手动触发
 
 jobs:

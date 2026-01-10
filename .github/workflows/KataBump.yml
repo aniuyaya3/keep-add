@@ -33,6 +33,6 @@ jobs:
           KATA_PASSWORD: ${{ secrets.KATA_PASSWORD }}
           KATA_SERVER_ID: ${{ secrets.KATA_SERVER_ID }}
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_USER_ID: ${{ secrets.TG_USER_ID }}
+          TG_USER_ID: ${{ secrets.TG_CHAT_ID }}
           EXECUTOR_NAME: 'GitHub Actions'
         run: python main.py

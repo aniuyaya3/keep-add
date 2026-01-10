@@ -18,7 +18,7 @@ SERVER_ID = os.environ.get('KATA_SERVER_ID', '185829')
 KATA_EMAIL = os.environ.get('KATA_EMAIL', '')
 KATA_PASSWORD = os.environ.get('KATA_PASSWORD', '')
 TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN', '')
-TG_CHAT_ID = os.environ.get('TG_CHAT_ID', '')
+TG_CHAT_ID = os.environ.get('TG_USER_ID', '')
 
 # 执行器配置
 EXECUTOR_NAME = os.environ.get('EXECUTOR_NAME', 'GitHub Actions')

@@ -35,4 +35,4 @@ jobs:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_USER_ID: ${{ secrets.TG_USER_ID }}
           EXECUTOR_NAME: 'GitHub Actions'
-        run: python katabump_renew.py
+        run: python main.py

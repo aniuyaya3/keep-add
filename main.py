@@ -12,18 +12,25 @@ import re
 import requests
 from datetime import datetime, timezone, timedelta
 
-# 配置
+# ================== 配置 ==================
 DASHBOARD_URL = 'https://dashboard.katabump.com'
-SERVER_ID = os.environ.get('KATA_SERVER_ID', '185829')
+SERVER_ID = os.environ.get('KATA_SERVER_ID', '')
 KATA_EMAIL = os.environ.get('KATA_EMAIL', '')
 KATA_PASSWORD = os.environ.get('KATA_PASSWORD', '')
-TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN', '')
-TG_CHAT_ID = os.environ.get('TG_USER_ID', '')
 
-# 执行器配置
+TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN', '')
+TG_CHAT_ID = os.environ.get('TG_CHAT_ID', '')
+
+# 执行器
 EXECUTOR_NAME = os.environ.get('EXECUTOR_NAME', 'GitHub Actions')
 
-# 新增：Renew 操作指南 HTML 模板
+# SOCKS5 代理（新增）
+# 示例：
+# socks5h://127.0.0.1:1080
+# socks5://user:pass@ip:port
+SOCKS5_PROXY = os.environ.get('SOCKS5_PROXY', '')
+
+# Renew 操作指南
 RENEW_GUIDE_HTML = """
 📝 <b>Renew 操作指南:</b>
 1. 登录 <a href="https://dashboard.katabump.com/">Dashboard</a>
@@ -35,6 +42,7 @@ RENEW_GUIDE_HTML = """
 🔗 <a href="https://dashboard.katabump.com/">点击此处直接跳转登录</a>
 """
 
+# ================== 工具函数 ==================
 def log(msg):
     tz = timezone(timedelta(hours=8))
     t = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
@@ -47,7 +55,12 @@ def send_telegram(message):
     try:
         requests.post(
             f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage',
-            json={'chat_id': TG_CHAT_ID, 'text': message, 'parse_mode': 'HTML', 'disable_web_page_preview': True},
+            json={
+                'chat_id': TG_CHAT_ID,
+                'text': message,
+                'parse_mode': 'HTML',
+                'disable_web_page_preview': True
+            },
             timeout=30
         )
         log('✅ Telegram 通知已发送')
@@ -86,38 +99,47 @@ def days_until(date_str):
 def parse_renew_error(url):
     if 'renew-error' not in url:
         return None, None
-    
+
     error_match = re.search(r'renew-error=([^&]+)', url)
     if not error_match:
         return '未知错误', None
-    
+
     error = requests.utils.unquote(error_match.group(1).replace('+', ' '))
-    
+
     date_match = re.search(r'as of (\d+) (\w+)', error)
     if date_match:
         day = date_match.group(1)
         month = date_match.group(2)
         return error, f'{month} {day}'
-    
+
     return error, None
 
-
+# ================== 主逻辑 ==================
 def run():
     log('🚀 KataBump 自动续订/提醒')
     log(f'🖥 服务器 ID: {SERVER_ID}')
-    
+
     session = requests.Session()
+
+    # ---------- SOCKS5 代理 ----------
+    if SOCKS5_PROXY:
+        session.proxies.update({
+            'http': SOCKS5_PROXY,
+            'https': SOCKS5_PROXY
+        })
+        log(f'🌐 使用 SOCKS5 代理: {SOCKS5_PROXY}')
+
     session.headers.update({
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
     })
-    
+
     try:
         # ========== 登录 ==========
         log('🔐 登录中...')
         session.get(f'{DASHBOARD_URL}/auth/login', timeout=30)
-        
+
         login_resp = session.post(
             f'{DASHBOARD_URL}/auth/login',
             data={
@@ -133,29 +155,28 @@ def run():
             timeout=30,
             allow_redirects=True
         )
-        
+
         log(f'📍 登录后URL: {login_resp.url}')
-        
+
         if '/auth/login' in login_resp.url:
             raise Exception('登录失败，请检查账号密码')
-        
+
         log('✅ 登录成功')
-        
+
         # ========== 获取服务器信息 ==========
         server_page = session.get(f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}', timeout=30)
         url = server_page.url
-        
+
         expiry = get_expiry(server_page.text) or '未知'
         days = days_until(expiry)
         csrf = get_csrf(server_page.text)
-        
+
         log(f'📅 到期: {expiry} (剩余 {days} 天)')
-        
-        # 检查是否有续订限制
-        error, renew_date = parse_renew_error(url)
+
+        # ========== 续订限制 ==========
+        error, _ = parse_renew_error(url)
         if error:
             log(f'⏳ {error}')
-            # 如果剩余天数少于2天且有错误（通常意味着需要手动介入或等待），发送带指南的通知
             if days is not None and days <= 2:
                 send_telegram(
                     f'ℹ️ <b>KataBump 续订提醒</b>\n\n'
@@ -167,14 +188,11 @@ def run():
                     f'{RENEW_GUIDE_HTML}'
                 )
             return
-        
+
         # ========== 尝试续订 ==========
         log('🔄 尝试续订...')
-        
-        api_url = f'{DASHBOARD_URL}/api-client/renew?id={SERVER_ID}'
-        
         api_resp = session.post(
-            api_url,
+            f'{DASHBOARD_URL}/api-client/renew?id={SERVER_ID}',
             data={'csrf': csrf} if csrf else {},
             headers={
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -184,19 +202,16 @@ def run():
             timeout=30,
             allow_redirects=False
         )
-        
+
         log(f'📥 状态码: {api_resp.status_code}')
-        
-        # 检查重定向
+
         if api_resp.status_code == 302:
             location = api_resp.headers.get('Location', '')
             log(f'📍 重定向到: {location}')
-            
+
             if 'renew=success' in location:
                 check = session.get(f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}', timeout=30)
                 new_expiry = get_expiry(check.text) or '未知'
-                
-                log('🎉 续订成功！')
                 send_telegram(
                     f'✅ <b>KataBump 续订成功</b>\n\n'
                     f'🖥 服务器: <code>{SERVER_ID}</code>\n'
@@ -205,62 +220,15 @@ def run():
                     f'💻 执行器: {EXECUTOR_NAME}'
                 )
                 return
-            
-            elif 'renew-error' in location:
-                error, _ = parse_renew_error(location)
-                log(f'⏳ {error}')
-                
-                if days is not None and days <= 2:
-                    send_telegram(
-                        f'ℹ️ <b>KataBump 续订受阻</b>\n\n'
-                        f'🖥 服务器: <code>{SERVER_ID}</code>\n'
-                        f'📅 到期: {expiry}\n'
-                        f'⏰ 剩余: {days} 天\n'
-                        f'📝 原因: {error}\n'
-                        f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                        f'{RENEW_GUIDE_HTML}'
-                    )
-                return
-            
-            elif 'error=captcha' in location:
-                log('❌ 需要 Captcha 验证')
-                
-                if days is not None and days <= 2:
-                    send_telegram(
-                        f'⚠️ <b>KataBump 需要手动续订</b>\n\n'
-                        f'🖥 服务器: <code>{SERVER_ID}</code>\n'
-                        f'📅 到期: {expiry}\n'
-                        f'⏰ 剩余: {days} 天\n'
-                        f'❗ 原因: 自动续订检测到验证码\n'
-                        f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                        f'{RENEW_GUIDE_HTML}'
-                    )
-                return
-        
-        # 检查响应内容
-        resp_text = api_resp.text
-        
-        if 'captcha' in resp_text.lower():
-            log('❌ 需要 Captcha 验证')
-            
-            if days is not None and days <= 2:
-                send_telegram(
-                    f'⚠️ <b>KataBump 需要手动续订</b>\n\n'
-                    f'🖥 服务器: <code>{SERVER_ID}</code>\n'
-                    f'📅 到期: {expiry}\n'
-                    f'⏰ 剩余: {days} 天\n'
-                    f'❗ 原因: 自动续订检测到验证码\n'
-                    f'💻 执行器: {EXECUTOR_NAME}\n\n'
-                    f'{RENEW_GUIDE_HTML}'
-                )
-            return
-        
-        # 最终检查
+
+            if 'error=captcha' in location:
+                raise Exception('检测到验证码，需要手动续订')
+
+        # 最终校验
         check = session.get(f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}', timeout=30)
         new_expiry = get_expiry(check.text) or '未知'
-        
+
         if new_expiry > expiry:
-            log('🎉 续订成功！')
             send_telegram(
                 f'✅ <b>KataBump 续订成功</b>\n\n'
                 f'🖥 服务器: <code>{SERVER_ID}</code>\n'
@@ -269,7 +237,6 @@ def run():
                 f'💻 执行器: {EXECUTOR_NAME}'
             )
         else:
-            log('⚠️ 续订状态未知')
             if days is not None and days <= 2:
                 send_telegram(
                     f'⚠️ <b>KataBump 请检查续订状态</b>\n\n'
@@ -278,7 +245,7 @@ def run():
                     f'💻 执行器: {EXECUTOR_NAME}\n\n'
                     f'{RENEW_GUIDE_HTML}'
                 )
-    
+
     except Exception as e:
         log(f'❌ 错误: {e}')
         send_telegram(
@@ -295,11 +262,11 @@ def main():
     log('=' * 50)
     log('   KataBump 自动续订/提醒脚本')
     log('=' * 50)
-    
+
     if not KATA_EMAIL or not KATA_PASSWORD:
         log('❌ 请设置 KATA_EMAIL 和 KATA_PASSWORD')
         sys.exit(1)
-    
+
     run()
     log('🏁 完成')
 

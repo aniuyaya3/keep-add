@@ -1,256 +1,308 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+KataBump 自动续订/提醒脚本
+cron: 0 9,21 * * *
+new Env('KataBump续订');
+"""
+
 import os
-import time
-import requests
-import zipfile
-import io
-import datetime
+import sys
 import re
-from DrissionPage import ChromiumPage, ChromiumOptions
+import requests
+from datetime import datetime, timezone, timedelta
 
-# ==================== 基础工具 ====================
-def log(message):
-    current_time = datetime.datetime.now().strftime("%H:%M:%S")
-    print(f"[{current_time}] {message}", flush=True)
+# 配置
+DASHBOARD_URL = 'https://dashboard.katabump.com'
+SERVER_ID = os.environ.get('KATA_SERVER_ID', '185829')
+KATA_EMAIL = os.environ.get('KATA_EMAIL', '')
+KATA_PASSWORD = os.environ.get('KATA_PASSWORD', '')
+TG_BOT_TOKEN = os.environ.get('TG_BOT_TOKEN', '')
+TG_CHAT_ID = os.environ.get('TG_USER_ID', '')
 
-def download_silk():
-    """
-    【插件1】Silk Privacy Pass
-    作用：辅助通过全屏盾，增加信任度
-    """
-    extract_dir = "extensions/silk_ext"
-    if os.path.exists(extract_dir): return os.path.abspath(extract_dir)
-    
-    log(">>> [插件1] 正在下载 Silk Privacy Pass...")
+# 执行器配置
+EXECUTOR_NAME = os.environ.get('EXECUTOR_NAME', 'GitHub Actions')
+
+# 新增：Renew 操作指南 HTML 模板
+RENEW_GUIDE_HTML = """
+📝 <b>Renew 操作指南:</b>
+1. 登录 <a href="https://dashboard.katabump.com/">Dashboard</a>
+2. 点击菜单栏 <b>Your Servers</b>
+3. 找到服务器点击 <b>See</b>
+4. 进入 <b>General</b> 页面
+5. 点击蓝色的 <b>Renew</b> 按钮
+
+🔗 <a href="https://dashboard.katabump.com/">点击此处直接跳转登录</a>
+"""
+
+def log(msg):
+    tz = timezone(timedelta(hours=8))
+    t = datetime.now(tz).strftime('%Y-%m-%d %H:%M:%S')
+    print(f'[{t}] {msg}')
+
+
+def send_telegram(message):
+    if not TG_BOT_TOKEN or not TG_CHAT_ID:
+        return False
     try:
-        url = "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=122.0&acceptformat=crx2,crx3&x=id%3Dajhmfdgkijocedmfjonnpjfojldioehi%26uc"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        resp = requests.get(url, headers=headers, stream=True)
-        if resp.status_code == 200:
-            if not os.path.exists("extensions"): os.makedirs("extensions")
-            with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-                zf.extractall(extract_dir)
-            return os.path.abspath(extract_dir)
-    except: pass
-    return None
-
-def download_cf_autoclick():
-    """
-    【插件2】CF-AutoClick
-    作用：自动点击验证码复选框
-    """
-    extract_root = "extensions/cf_autoclick_root"
-    
-    # 下载逻辑
-    if not os.path.exists(extract_root):
-        log(">>> [插件2] 正在下载 CF-AutoClick (Master)...")
-        try:
-            url = "https://codeload.github.com/tenacious6/cf-autoclick/zip/refs/heads/master"
-            headers = {"User-Agent": "Mozilla/5.0"}
-            resp = requests.get(url, headers=headers, stream=True)
-            if resp.status_code == 200:
-                if not os.path.exists("extensions"): os.makedirs("extensions")
-                with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-                    zf.extractall(extract_root)
-            else:
-                log(f"❌ [插件2] 下载失败: {resp.status_code}")
-                return None
-        except Exception as e:
-            log(f"❌ [插件2] 异常: {e}")
-            return None
-
-    # 智能寻址：寻找 manifest.json
-    for root, dirs, files in os.walk(extract_root):
-        if "manifest.json" in files:
-            log(f"✅ [插件2] 路径锁定: {os.path.basename(root)}")
-            return os.path.abspath(root)
-            
-    return None
-
-# ==================== 核心逻辑 ====================
-
-def pass_full_page_shield(page):
-    """处理全屏盾"""
-    for _ in range(3):
-        if "just a moment" in page.title.lower():
-            log("--- [门神] 全屏盾出现，等待双插件配合过盾...")
-            time.sleep(3)
-        else:
-            return True
-    return False
-
-def manual_click_checkbox(modal):
-    """【补刀逻辑】手动点击 checkbox"""
-    log(">>> [补刀] 检查是否需要手动点击...")
-    
-    # 1. iframe 内部扫描
-    iframe = modal.ele('css:iframe[src*="cloudflare"], iframe[src*="turnstile"]', timeout=3)
-    if iframe:
-        checkbox = iframe.ele('css:input[type="checkbox"]', timeout=2)
-        if checkbox:
-            log(">>> [补刀] 🎯 在 iframe 里点击 Checkbox！")
-            checkbox.click(by_js=True)
-            return True
-        else:
-            # 没 checkbox 就点 iframe 中心
-            log(">>> [补刀] 点击 iframe 主体...")
-            iframe.ele('tag:body').click(by_js=True)
-            return True
-            
-    # 2. 外部扫描
-    checkbox = modal.ele('css:input[type="checkbox"]', timeout=1)
-    if checkbox:
-        log(">>> [补刀] 🎯 在外部点击 Checkbox！")
-        checkbox.click(by_js=True)
+        requests.post(
+            f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage',
+            json={'chat_id': TG_CHAT_ID, 'text': message, 'parse_mode': 'HTML', 'disable_web_page_preview': True},
+            timeout=30
+        )
+        log('✅ Telegram 通知已发送')
         return True
-        
-    log(">>> [补刀] 未找到元素 (可能插件已完成点击)")
+    except Exception as e:
+        log(f'❌ Telegram 错误: {e}')
     return False
 
-def analyze_page_alert(page):
-    """解析结果"""
-    log(">>> [系统] 检查结果...")
-    
-    danger = page.ele('css:.alert.alert-danger')
-    if danger and danger.states.is_displayed:
-        text = danger.text
-        log(f"⬇️ 红色提示: {text}")
-        if "can't renew" in text.lower():
-            match = re.search(r'\(in (\d+) day', text)
-            days = match.group(1) if match else "?"
-            log(f"✅ [结果] 未到期 (等待 {days} 天)")
-            return "SUCCESS_TOO_EARLY"
-        elif "captcha" in text.lower():
-            return "FAIL_CAPTCHA"
-        return "FAIL_OTHER"
 
-    success = page.ele('css:.alert.alert-success')
-    if success and success.states.is_displayed:
-        log(f"⬇️ 绿色提示: {success.text}")
-        log("🎉 [结果] 续期成功！")
-        return "SUCCESS"
+def get_expiry(html):
+    match = re.search(r'Expiry[\s\S]*?(\d{4}-\d{2}-\d{2})', html, re.IGNORECASE)
+    return match.group(1) if match else None
 
-    return "UNKNOWN"
 
-# ==================== 主程序 ====================
-def job():
-    # 1. 准备插件
-    path_silk = download_silk()
-    path_cf = download_cf_autoclick()
-    
-    # 2. 配置浏览器
-    co = ChromiumOptions()
-    co.set_argument('--headless=new')
-    co.set_argument('--no-sandbox')
-    co.set_argument('--disable-gpu')
-    co.set_argument('--disable-dev-shm-usage')
-    co.set_argument('--window-size=1920,1080')
-    co.set_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36')
-    
-    # 3. 同时挂载两个插件
-    plugin_count = 0
-    if path_silk: 
-        co.add_extension(path_silk)
-        plugin_count += 1
-    if path_cf: 
-        co.add_extension(path_cf)
-        plugin_count += 1
-        
-    log(f">>> [浏览器] 已挂载插件数量: {plugin_count}")
-        
-    co.auto_port()
-    page = ChromiumPage(co)
-    page.set.timeouts(15)
+def get_csrf(html):
+    patterns = [
+        r'<input[^>]*name=["\']csrf["\'][^>]*value=["\']([^"\']+)["\']',
+        r'<input[^>]*value=["\']([^"\']+)["\'][^>]*name=["\']csrf["\']',
+    ]
+    for p in patterns:
+        m = re.search(p, html, re.IGNORECASE)
+        if m and len(m.group(1)) > 10:
+            return m.group(1)
+    return None
 
+
+def days_until(date_str):
     try:
-        email = os.environ.get("KB_EMAIL")
-        password = os.environ.get("KB_PASSWORD")
-        target_url = os.environ.get("KB_RENEW_URL")
+        exp = datetime.strptime(date_str, '%Y-%m-%d')
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        return (exp - today).days
+    except:
+        return None
+
+
+def parse_renew_error(url):
+    if 'renew-error' not in url:
+        return None, None
+    
+    error_match = re.search(r'renew-error=([^&]+)', url)
+    if not error_match:
+        return '未知错误', None
+    
+    error = requests.utils.unquote(error_match.group(1).replace('+', ' '))
+    
+    date_match = re.search(r'as of (\d+) (\w+)', error)
+    if date_match:
+        day = date_match.group(1)
+        month = date_match.group(2)
+        return error, f'{month} {day}'
+    
+    return error, None
+
+
+def run():
+    log('🚀 KataBump 自动续订/提醒')
+    log(f'🖥 服务器 ID: {SERVER_ID}')
+    
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+    })
+    
+    try:
+        # ========== 登录 ==========
+        log('🔐 登录中...')
+        session.get(f'{DASHBOARD_URL}/auth/login', timeout=30)
         
-        if not all([email, password, target_url]): 
-            log("❌ 配置缺失")
-            exit(1)
-
-        # Step 1: 登录
-        log(">>> [Step 1] 登录...")
-        page.get('https://dashboard.katabump.com/auth/login')
-        pass_full_page_shield(page)
-
-        if page.ele('css:input[name="email"]'):
-            page.ele('css:input[name="email"]').input(email)
-            page.ele('css:input[name="password"]').input(password)
-            page.ele('css:button#submit').click()
-            page.wait.url_change('login', exclude=True, timeout=20)
+        login_resp = session.post(
+            f'{DASHBOARD_URL}/auth/login',
+            data={
+                'email': KATA_EMAIL,
+                'password': KATA_PASSWORD,
+                'remember': 'true'
+            },
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Origin': DASHBOARD_URL,
+                'Referer': f'{DASHBOARD_URL}/auth/login',
+            },
+            timeout=30,
+            allow_redirects=True
+        )
         
-        # Step 2: 循环重试
-        max_retries = 3
-        for attempt in range(1, max_retries + 1):
-            log(f"\n🚀 [Step 2] 尝试续期 (第 {attempt} 次)...")
-            page.get(target_url)
-            pass_full_page_shield(page)
+        log(f'📍 登录后URL: {login_resp.url}')
+        
+        if '/auth/login' in login_resp.url:
+            raise Exception('登录失败，请检查账号密码')
+        
+        log('✅ 登录成功')
+        
+        # ========== 获取服务器信息 ==========
+        server_page = session.get(f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}', timeout=30)
+        url = server_page.url
+        
+        expiry = get_expiry(server_page.text) or '未知'
+        days = days_until(expiry)
+        csrf = get_csrf(server_page.text)
+        
+        log(f'📅 到期: {expiry} (剩余 {days} 天)')
+        
+        # 检查是否有续订限制
+        error, renew_date = parse_renew_error(url)
+        if error:
+            log(f'⏳ {error}')
+            # 如果剩余天数少于2天且有错误（通常意味着需要手动介入或等待），发送带指南的通知
+            if days is not None and days <= 2:
+                send_telegram(
+                    f'ℹ️ <b>KataBump 续订提醒</b>\n\n'
+                    f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                    f'📅 到期: {expiry}\n'
+                    f'⏰ 剩余: {days} 天\n'
+                    f'📝 状态: {error}\n'
+                    f'💻 执行器: {EXECUTOR_NAME}\n\n'
+                    f'{RENEW_GUIDE_HTML}'
+                )
+            return
+        
+        # ========== 尝试续订 ==========
+        log('🔄 尝试续订...')
+        
+        api_url = f'{DASHBOARD_URL}/api-client/renew?id={SERVER_ID}'
+        
+        api_resp = session.post(
+            api_url,
+            data={'csrf': csrf} if csrf else {},
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Origin': DASHBOARD_URL,
+                'Referer': f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}'
+            },
+            timeout=30,
+            allow_redirects=False
+        )
+        
+        log(f'📥 状态码: {api_resp.status_code}')
+        
+        # 检查重定向
+        if api_resp.status_code == 302:
+            location = api_resp.headers.get('Location', '')
+            log(f'📍 重定向到: {location}')
             
-            renew_btn = None
-            for _ in range(5):
-                renew_btn = page.ele('css:button[data-bs-target="#renew-modal"]')
-                if renew_btn and renew_btn.states.is_displayed: break
-                time.sleep(1)
-
-            if renew_btn:
-                log(">>> 点击 Renew 按钮...")
-                renew_btn.click(by_js=True)
+            if 'renew=success' in location:
+                check = session.get(f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}', timeout=30)
+                new_expiry = get_expiry(check.text) or '未知'
                 
-                log(">>> 等待弹窗...")
-                modal = page.ele('css:.modal-content', timeout=10)
-                
-                if modal:
-                    log(">>> [操作] 弹窗出现，等待双插件干活 (10s)...")
-                    
-                    # 确保验证码加载，给插件目标
-                    page.wait.ele_displayed('css:iframe[src*="cloudflare"], iframe[src*="turnstile"]', timeout=8)
-                    
-                    # 1. 插件自动处理时间
-                    time.sleep(10)
-                    
-                    # 2. 脚本手动补刀 (如果插件漏了)
-                    manual_click_checkbox(modal)
-                    
-                    # 3. 缓冲
-                    time.sleep(3)
-                    
-                    confirm_btn = modal.ele('css:button[type="submit"].btn-primary')
-                    if confirm_btn:
-                        log(">>> 点击 Confirm...")
-                        confirm_btn.click(by_js=True)
-                        log(">>> 等待响应 (5s)...")
-                        time.sleep(5)
-                        
-                        result = analyze_page_alert(page)
-                        
-                        if result == "SUCCESS" or result == "SUCCESS_TOO_EARLY":
-                            break 
-                        
-                        if result == "FAIL_CAPTCHA":
-                            log("⚠️ 验证未通过，刷新重试...")
-                            time.sleep(2)
-                            continue
-                    else:
-                        log("❌ 找不到确认按钮")
-                else:
-                    log("❌ 弹窗未出")
-            else:
-                log("⚠️ 未找到按钮，检查状态...")
-                result = analyze_page_alert(page)
-                if result == "SUCCESS_TOO_EARLY":
-                    break
+                log('🎉 续订成功！')
+                send_telegram(
+                    f'✅ <b>KataBump 续订成功</b>\n\n'
+                    f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                    f'📅 原到期: {expiry}\n'
+                    f'📅 新到期: {new_expiry}\n'
+                    f'💻 执行器: {EXECUTOR_NAME}'
+                )
+                return
             
-            if attempt == max_retries:
-                log("❌ 最大重试次数已达，任务终止。")
-                exit(1)
-
+            elif 'renew-error' in location:
+                error, _ = parse_renew_error(location)
+                log(f'⏳ {error}')
+                
+                if days is not None and days <= 2:
+                    send_telegram(
+                        f'ℹ️ <b>KataBump 续订受阻</b>\n\n'
+                        f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                        f'📅 到期: {expiry}\n'
+                        f'⏰ 剩余: {days} 天\n'
+                        f'📝 原因: {error}\n'
+                        f'💻 执行器: {EXECUTOR_NAME}\n\n'
+                        f'{RENEW_GUIDE_HTML}'
+                    )
+                return
+            
+            elif 'error=captcha' in location:
+                log('❌ 需要 Captcha 验证')
+                
+                if days is not None and days <= 2:
+                    send_telegram(
+                        f'⚠️ <b>KataBump 需要手动续订</b>\n\n'
+                        f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                        f'📅 到期: {expiry}\n'
+                        f'⏰ 剩余: {days} 天\n'
+                        f'❗ 原因: 自动续订检测到验证码\n'
+                        f'💻 执行器: {EXECUTOR_NAME}\n\n'
+                        f'{RENEW_GUIDE_HTML}'
+                    )
+                return
+        
+        # 检查响应内容
+        resp_text = api_resp.text
+        
+        if 'captcha' in resp_text.lower():
+            log('❌ 需要 Captcha 验证')
+            
+            if days is not None and days <= 2:
+                send_telegram(
+                    f'⚠️ <b>KataBump 需要手动续订</b>\n\n'
+                    f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                    f'📅 到期: {expiry}\n'
+                    f'⏰ 剩余: {days} 天\n'
+                    f'❗ 原因: 自动续订检测到验证码\n'
+                    f'💻 执行器: {EXECUTOR_NAME}\n\n'
+                    f'{RENEW_GUIDE_HTML}'
+                )
+            return
+        
+        # 最终检查
+        check = session.get(f'{DASHBOARD_URL}/servers/edit?id={SERVER_ID}', timeout=30)
+        new_expiry = get_expiry(check.text) or '未知'
+        
+        if new_expiry > expiry:
+            log('🎉 续订成功！')
+            send_telegram(
+                f'✅ <b>KataBump 续订成功</b>\n\n'
+                f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                f'📅 原到期: {expiry}\n'
+                f'📅 新到期: {new_expiry}\n'
+                f'💻 执行器: {EXECUTOR_NAME}'
+            )
+        else:
+            log('⚠️ 续订状态未知')
+            if days is not None and days <= 2:
+                send_telegram(
+                    f'⚠️ <b>KataBump 请检查续订状态</b>\n\n'
+                    f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+                    f'📅 到期: {new_expiry}\n'
+                    f'💻 执行器: {EXECUTOR_NAME}\n\n'
+                    f'{RENEW_GUIDE_HTML}'
+                )
+    
     except Exception as e:
-        log(f"❌ 异常: {e}")
-        exit(1)
-    finally:
-        page.quit()
+        log(f'❌ 错误: {e}')
+        send_telegram(
+            f'❌ <b>KataBump 运行出错</b>\n\n'
+            f'🖥 服务器: <code>{SERVER_ID}</code>\n'
+            f'❗ 错误信息: {e}\n'
+            f'💻 执行器: {EXECUTOR_NAME}\n\n'
+            f'{RENEW_GUIDE_HTML}'
+        )
+        raise
 
-if __name__ == "__main__":
-    job()
+
+def main():
+    log('=' * 50)
+    log('   KataBump 自动续订/提醒脚本')
+    log('=' * 50)
+    
+    if not KATA_EMAIL or not KATA_PASSWORD:
+        log('❌ 请设置 KATA_EMAIL 和 KATA_PASSWORD')
+        sys.exit(1)
+    
+    run()
+    log('🏁 完成')
+
+
+if __name__ == '__main__':
+    main()

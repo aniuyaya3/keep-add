@@ -1,0 +1,103 @@
+name: KataBump 自动续订
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: '0 1,13 * * *'
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: 安装依赖
+        run: |
+          pip install playwright requests pysocks
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: 下载 Hysteria2
+        run: |
+          wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O hysteria
+          chmod +x hysteria
+          ./hysteria version
+
+      - name: 配置 Hysteria2
+        env:
+          HY2_URL: ${{ secrets.HY2_URL }}
+        run: |
+          URL_BODY="${HY2_URL#hysteria2://}"
+          URL_BODY="${URL_BODY%%#*}"
+
+          PASSWORD="${URL_BODY%%@*}"
+          SERVER_PART="${URL_BODY#*@}"
+          SERVER="${SERVER_PART%%\?*}"
+          PARAMS="${SERVER_PART#*\?}"
+
+          get_param() {
+            echo "$PARAMS" | tr '&' '\n' | grep "^$1=" | cut -d'=' -f2
+          }
+
+          SNI=$(get_param "sni")
+          INSECURE=$(get_param "insecure")
+
+          [ -z "$SNI" ] && SNI="${SERVER%%:*}"
+          [ "$INSECURE" = "1" ] && INSECURE="true" || INSECURE="false"
+
+          cat > hy2-config.yaml << EOF
+          server: ${SERVER}
+          auth: ${PASSWORD}
+          tls:
+            sni: ${SNI}
+            insecure: ${INSECURE}
+          socks5:
+            listen: 127.0.0.1:1080
+          http:
+            listen: 127.0.0.1:8080
+          EOF
+
+      - name: 启动 Hysteria2
+        run: |
+          ./hysteria client -c hy2-config.yaml &
+          echo "HY2_PID=$!" >> $GITHUB_ENV
+          sleep 5
+          
+          PROXY_IP=$(curl -s --connect-timeout 10 --proxy socks5://127.0.0.1:1080 https://api.ipify.org)
+          if [ -n "$PROXY_IP" ]; then
+            echo "✅ 代理连接成功"
+            echo "PROXY_IP=$PROXY_IP" >> $GITHUB_ENV
+          else
+            echo "❌ 代理连接失败"
+            exit 1
+          fi
+
+      - name: 运行续订
+        env:
+          KATA_EMAIL: ${{ secrets.KATA_EMAIL }}
+          KATA_PASSWORD: ${{ secrets.KATA_PASSWORD }}
+          KATA_SERVER_ID: ${{ secrets.KATA_SERVER_ID }}
+          CAPSOLVER_KEY: ${{ secrets.CAPSOLVER_KEY }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          SCREENSHOT_DIR: /tmp
+          PROXY_SERVER: "socks5://127.0.0.1:1080"
+        run: python katabump.py
+
+      - name: 停止代理
+        if: always()
+        run: kill $HY2_PID 2>/dev/null || true
+      
+      - name: 上传截图
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.run_number }}
+          path: /tmp/*.png
+          retention-days: 3
+          if-no-files-found: ignore

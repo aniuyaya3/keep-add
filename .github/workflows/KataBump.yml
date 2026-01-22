@@ -1,4 +1,4 @@
-name: KataBump Auto Renew
+name: KataBump 手动
 
 on:
   schedule:

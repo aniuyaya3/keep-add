@@ -1,13 +1,17 @@
-name: Generate Top5 IP Lists
+name: Update Top5 IP Files
 
 on:
   schedule:
-    - cron: "0 * * * *"   # 每小时运行一次（可改）
+    - cron: "0 * * * *"   # 每小时跑一次（你可改）
   push:
     branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 必须给写权限
 
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,8 +30,16 @@ jobs:
         mkdir -p outputs
         python i.py
 
-    - name: Upload outputs
-      uses: actions/upload-artifact@v4
-      with:
-        name: top5-ip-files
-        path: outputs/
+    - name: Commit and push if changed
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        git add outputs/*.txt
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update Top5 IP files"
+          git push
+        fi

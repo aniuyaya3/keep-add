@@ -16,11 +16,11 @@ def parse_bandwidth(bw_str: str) -> float:
 def get_top5(entries: list) -> list:
     """
     entries: 列表元素为 {"IP": "...", "带宽": "...", ...}
-    返回按照带宽排序后的前 5
+    返回按照带宽排序后的前 2
     """
     # 过滤掉没有带宽的项
     sorted_entries = sorted(entries, key=lambda x: parse_bandwidth(x.get("带宽", "0")), reverse=True)
-    return sorted_entries[:5]
+    return sorted_entries[:2]
 
 def main():
     # 请求 JSON 数据

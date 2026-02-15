@@ -1,4 +1,4 @@
-name: Auto Renew Katabump3
+name: Auto Renew Katabump
 
 on:  
   schedule:

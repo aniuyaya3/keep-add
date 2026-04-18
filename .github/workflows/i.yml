@@ -6,7 +6,7 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
-
+  
 permissions:
   contents: write   # 必须给写权限
 

@@ -1,40 +1,36 @@
-name: EdgeTunnel IP Speed Test
+name: Run Python Filter
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
-jobs:
-  test-and-update:
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
-        # 删除了错误的 python-cache-dependency-path
+        python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        pip install requests
+    - name: Run filter script
+      run: python speedtest.py
 
-    - name: Run Speed Test Script
-      run: |
-        python speedtest.py
-
-    - name: Commit and Push if changed
+    - name: Commit and Push
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        
-        # 如果文件不存在则建一个空文件，防止 git add 崩溃
-        touch ip.txt
-        
-        git add ip.txt
-        # 只有在 ip.txt 真正发生内容变化时才提交，防止空提交报错
-        git diff --quiet --staged || (git commit -m "Update fastest IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+        if git diff --exit-code ip.txt > /dev/null; then
+          echo "No changes detected."
+        else
+          git add ip.txt
+          git commit -m "自动更新: Python 筛选 HK IP"
+          git push
+        fi

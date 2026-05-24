@@ -1,0 +1,36 @@
+name: EdgeTunnel IP Speed Test
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 每 6 小时自动运行一次
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  test-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-cache-dependency-path: '' # 禁用缓存依赖防止报错
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install requests
+
+    - name: Run Speed Test Script
+      run: |
+        python speedtest.py
+
+    - name: Commit and Push if changed
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add ip.txt
+        # 只有在 ip.txt 发生变化时才提交，防止工作流报错
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update fastest IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)

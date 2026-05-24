@@ -2,8 +2,8 @@ name: EdgeTunnel IP Speed Test
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # 每 6 小时自动运行一次
-  workflow_dispatch: # 允许手动触发
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   test-and-update:
@@ -16,8 +16,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-cache-dependency-path: '' # 禁用缓存依赖防止报错
         python-version: '3.10'
+        # 删除了错误的 python-cache-dependency-path
 
     - name: Install dependencies
       run: |
@@ -31,6 +31,10 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
+        
+        # 如果文件不存在则建一个空文件，防止 git add 崩溃
+        touch ip.txt
+        
         git add ip.txt
-        # 只有在 ip.txt 发生变化时才提交，防止工作流报错
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Update fastest IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+        # 只有在 ip.txt 真正发生内容变化时才提交，防止空提交报错
+        git diff --quiet --staged || (git commit -m "Update fastest IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)

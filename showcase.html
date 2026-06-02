@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep-Add | 智能数据处理平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #0a0e27;
+            color: #fff;
+        }
+
+        /* 背景动画 */
+        @keyframes moveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 导航栏 */
+        .navbar {
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(100, 200, 255, 0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #64c8ff, #4fa3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(100, 200, 255, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #64c8ff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: linear-gradient(90deg, #64c8ff, #4fa3ff);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* 英雄区 */
+        .hero {
+            margin-top: 60px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(10, 14, 39, 1), rgba(20, 25, 60, 1));
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(100, 200, 255, 0.15), transparent);
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(79, 163, 255, 0.1), transparent);
+            border-radius: 50%;
+            bottom: 10%;
+            right: 10%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 10;
+            max-width: 800px;
+            padding: 0 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #64c8ff, #4fa3ff, #9d4edd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInDown 1s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: #a0aec0;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #64c8ff, #4fa3ff);
+            color: #0a0e27;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(100, 200, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border: none;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #4fa3ff, #64c8ff);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .cta-button:hover {
+            box-shadow: 0 0 50px rgba(100, 200, 255, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .cta-button:hover::before {
+            left: 0;
+        }
+
+        /* 特性区 */
+        .features {
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, rgba(10, 14, 39, 1), rgba(15, 20, 45, 1));
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, #64c8ff, #9d4edd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.1), rgba(79, 163, 255, 0.05));
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(100, 200, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(100, 200, 255, 0.5);
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(100, 200, 255, 0.2);
+        }
+
+        .feature-card:hover::before {
+            left: 100%;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #64c8ff;
+        }
+
+        .feature-card p {
+            color: #a0aec0;
+            line-height: 1.6;
+        }
+
+        /* 统计区 */
+        .stats {
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.05), rgba(79, 163, 255, 0.02));
+            border: 1px solid rgba(100, 200, 255, 0.1);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #64c8ff, #4fa3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #a0aec0;
+            font-size: 1rem;
+        }
+
+        /* 技术栈 */
+        .tech-stack {
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, rgba(10, 14, 39, 1), rgba(15, 20, 45, 1));
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tech-badge {
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.1), rgba(79, 163, 255, 0.05));
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tech-badge:hover {
+            border-color: rgba(100, 200, 255, 0.5);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(100, 200, 255, 0.2);
+        }
+
+        .tech-badge-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-badge-name {
+            color: #64c8ff;
+            font-weight: 600;
+        }
+
+        /* 页脚 */
+        footer {
+            background: rgba(10, 14, 39, 0.95);
+            border-top: 1px solid rgba(100, 200, 255, 0.2);
+            padding: 2rem;
+            text-align: center;
+            color: #a0aec0;
+        }
+
+        footer a {
+            color: #64c8ff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #fff;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* 加载动画 */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo">⚡ Keep-Add</div>
+        <ul class="nav-links">
+            <li><a href="#features">功能</a></li>
+            <li><a href="#tech">技术</a></li>
+            <li><a href="https://github.com/aniuyaya3/keep-add" target="_blank">GitHub</a></li>
+        </ul>
+    </nav>
+
+    <!-- 英雄区 -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>🚀 Keep-Add</h1>
+            <p>智能数据处理与增强平台</p>
+            <p style="font-size: 1rem; margin-top: 1rem;">使用 Python 驱动的高效数据处理引擎</p>
+            <button class="cta-button" onclick="window.open('https://github.com/aniuyaya3/keep-add', '_blank')">
+                查看项目 →
+            </button>
+        </div>
+    </section>
+
+    <!-- 特性区 -->
+    <section class="features" id="features">
+        <h2 class="section-title">核心特性</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔬</div>
+                <h3>科学计算</h3>
+                <p>基于 Python 科学计算库构建，支持复杂的数据分析和处理算法</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚙️</div>
+                <h3>高效引擎</h3>
+                <p>优化的数据处理管道，支持大规模数据集的快速处理</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>精准增强</h3>
+                <p>智能数据增强算法，提升数据质量和模型性能</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>安全可靠</h3>
+                <p>企业级数据保护和验证机制，确保数据完整性</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>数据可视化</h3>
+                <p>实时数据分析和可视化展示，直观理解数据特征</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>高性能</h3>
+                <p>经过优化的代码架构，提供最优的执行效率</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 统计区 -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Python 实现</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">可扩展性</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">持续支持</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">🔥</div>
+                <div class="stat-label">开源免费</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术栈 -->
+    <section class="tech-stack" id="tech">
+        <h2 class="section-title">技术栈</h2>
+        <div class="tech-grid">
+            <div class="tech-badge">
+                <div class="tech-badge-icon">🐍</div>
+                <div class="tech-badge-name">Python 3.x</div>
+            </div>
+            <div class="tech-badge">
+                <div class="tech-badge-icon">📦</div>
+                <div class="tech-badge-name">NumPy</div>
+            </div>
+            <div class="tech-badge">
+                <div class="tech-badge-icon">📈</div>
+                <div class="tech-badge-name">Pandas</div>
+            </div>
+            <div class="tech-badge">
+                <div class="tech-badge-icon">🤖</div>
+                <div class="tech-badge-name">Machine Learning</div>
+            </div>
+            <div class="tech-badge">
+                <div class="tech-badge-icon">⚡</div>
+                <div class="tech-badge-name">高性能处理</div>
+            </div>
+            <div class="tech-badge">
+                <div class="tech-badge-icon">🔧</div>
+                <div class="tech-badge-name">DevOps 友好</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>💡 Keep-Add - 智能数据处理平台</p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">
+            <a href="https://github.com/aniuyaya3/keep-add" target="_blank">GitHub</a> • 
+            2026 • Made with ❤️ by aniuyaya3
+        </p>
+    </footer>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // 页面加载动画
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.feature-card').forEach((card, index) => {
+                card.style.animation = `fadeInUp ${0.5 + index * 0.1}s ease-out`;
+            });
+        });
+    </script>
+</body>
+</html>

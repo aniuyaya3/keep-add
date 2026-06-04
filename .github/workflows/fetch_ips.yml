@@ -1,9 +1,9 @@
 name: Fetch and Categorize IPs
 
 on:
-  workflow_dispatch: # 支持手动点击触发
+  workflow_dispatch: # 支持在 GitHub 页面上手动点击运行
   schedule:
-    - cron: '0 */6 * * *' # 每 6 小时自动运行一次（可根据需要修改）
+    - cron: '0 */6 * * *' # 每 6 小时自动后台运行一次
 
 jobs:
   build:
@@ -31,11 +31,11 @@ jobs:
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         
-        # 检查 ips 文件夹是否存在且里面有 txt 文件
-        if [ -d "ips" ] && [ "$(ls -A ips/*.txt 2>/dev/null)" ]; then
+        # 检查 ips 文件夹是否存在，且里面确实有 .txt 文件
+        if [ -d "ips" ] && ls ips/*.txt 1> /dev/null 2>&1; then
           git add ips/*.txt
-          # 只有在文件内容确实有变化时才提交
+          # 只有在文件内容有实际变动时才提交，防止因无变动导致 git commit 报错
           git diff --staged --quiet || (git commit -m "Update IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)
         else
-          echo "提示: 没有找到任何生成的 IP 文本文件，跳过提交。"
+          echo "提示: 本次运行未检测到新生成的国家 IP 文本文件，跳过 Git 提交。"
         fi

@@ -30,6 +30,12 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add ips/*.txt
-        # 只有在文件有变化时才提交，防止报错
-        git diff --staged --quiet || (git commit -m "Update IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+        
+        # 检查 ips 文件夹是否存在且里面有 txt 文件
+        if [ -d "ips" ] && [ "$(ls -A ips/*.txt 2>/dev/null)" ]; then
+          git add ips/*.txt
+          # 只有在文件内容确实有变化时才提交
+          git diff --staged --quiet || (git commit -m "Update IPs $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+        else
+          echo "提示: 没有找到任何生成的 IP 文本文件，跳过提交。"
+        fi

@@ -1,21 +1,17 @@
 import os
 import re
 import requests
-import base64
 
 URL = "https://api.nmm.us.ci/edgetunnel/KR-MY-TW?limit=10"
 OUTPUT_DIR = "ips"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-def decode_base64(data):
-    """尝试解码 Base64 订阅数据"""
-    try:
-        missing_padding = len(data) % 4
-        if missing_padding:
-            data += '=' * (4 - missing_padding)
-        return base64.b64decode(data).decode('utf-8')
-    except Exception:
-        return data
+# 中文国家/地区映射表
+COUNTRY_MAP = {
+    "韩国": "KR",
+    "马来西亚": "MY",
+    "台湾": "TW"
+}
 
 def extract_ips():
     try:
@@ -27,67 +23,48 @@ def extract_ips():
             print("❌ API 返回内容为空！")
             return
 
-        print("--- API 响应前 500 个字符内容 (用于调试) ---")
-        print(raw_text[:500])
-        print("------------------------------------------")
-
-        # 1. 尝试判定是否为 Base64 加密的订阅链接，是的话先解码
-        if "://" not in raw_text and len(raw_text) > 20:
-            raw_text = decode_base64(raw_text)
-
         lines = raw_text.splitlines()
         country_ips = {}
 
-        # 2. 遍历每一行，用多种主流规则匹配 IP、端口、国家
         for line in lines:
             line = line.strip()
             if not line:
                 continue
 
-            ip, port, country = None, None, "UNKNOWN"
-
-            # 模式 A: 标准格式 112.213.43.12:443#KR
-            match_std = re.search(r"(\[?[a-fA-F0-9:.]+\]?):(\d+)#([\w-]+)", line)
-            if match_std:
-                ip = match_std.group(1).replace("[", "").replace("]", "")
-                port = match_std.group(2)
-                country = match_std.group(3).upper()
+            # 匹配你的数据格式: 129.154.50.159:443#🇰🇷 韩国 129.154.50.159:443
+            # 提取最前面的 IP 和 端口，以及 # 后面的中文国家名
+            match = re.search(r"^([\d.]+):(\d+)#.*?\s+([\u4e00-\u9fa5]+)", line)
             
-            # 模式 B: 节点链接格式 (vmess://, vless://, ss://, trojan://)
-            elif "://" in line:
-                if "#" in line:
-                    alias = line.split("#")[1]
-                    for c in ["KR", "MY", "TW"]:
-                        if c in alias.upper():
-                            country = c
-                            break
-                
-                match_link = re.search(r"@(\[?[a-fA-F0-9:.]+\]?):(\d+)", line)
-                if match_link:
-                    ip = match_link.group(1).replace("[", "").replace("]", "")
-                    port = match_link.group(2)
+            if match:
+                ip = match.group(1)
+                port = match.group(2)
+                country_name = match.group(3) # 提取出 "韩国", "马来西亚", "台湾"
 
-            # 3. 如果成功提取出 IP，且端口是 443
-            if ip and port == "443":
-                if re.match(r"^(\d{1,3}\.){3}\d{1,3}$", ip) or ":" in ip:
-                    if country not in country_ips:
-                        country_ips[country] = []
-                    country_ips[country].append(ip)
+                # 严格筛选 443 端口
+                if port == "443":
+                    # 将中文转换为你要求的英文缩写作为文件名，找不到就用原中文
+                    country_code = COUNTRY_MAP.get(country_name, country_name)
+                    
+                    if country_code not in country_ips:
+                        country_ips[country_code] = []
+                    country_ips[country_code].append(ip)
 
-        # 4. 写入文件
+        # 写入文件
         if not country_ips:
-            print("⚠️ 未在该 API 数据中筛选出任何 443 端口的有效 IP。")
+            print("⚠️ 未在此数据中筛选出任何 443 端口的有效 IP。")
             return
 
         for country, ips in country_ips.items():
+            # 去重并排序
             unique_ips = sorted(list(set(ips)))
             file_path = os.path.join(OUTPUT_DIR, f"{country}.txt")
+            
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(unique_ips) + "\n")
-            print(f"✅ 成功创建并写入: {file_path} (共 {len(unique_ips)} 个 IP)")
+            print(f"✅ 成功创建并写入: {file_path} (共 {len(unique_ips)} 个 443 IP)")
 
     except Exception as e:
-        print(f"❌ 运行中发生异常: {e}")
+        print(f"❌ 运行异常: {e}")
 
 if __name__ == "__main__":
     extract_ips()

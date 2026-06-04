@@ -10,7 +10,6 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 def decode_base64(data):
     """尝试解码 Base64 订阅数据"""
     try:
-        # 补齐 Base64 填充
         missing_padding = len(data) % 4
         if missing_padding:
             data += '=' * (4 - missing_padding)
@@ -33,7 +32,7 @@ def extract_ips():
         print("------------------------------------------")
 
         # 1. 尝试判定是否为 Base64 加密的订阅链接，是的话先解码
-        if "://" injustice not in raw_text and len(raw_text) > 20:
+        if "://" not in raw_text and len(raw_text) > 20:
             raw_text = decode_base64(raw_text)
 
         lines = raw_text.splitlines()
@@ -55,19 +54,14 @@ def extract_ips():
                 country = match_std.group(3).upper()
             
             # 模式 B: 节点链接格式 (vmess://, vless://, ss://, trojan://)
-            # 常见格式如: vless://uuid@ip:443?remarks...#KR-地区
             elif "://" in line:
-                # 提取 # 后面的别名作为国家参考
                 if "#" in line:
                     alias = line.split("#")[1]
-                    # 尝试从别名中找出 KR/MY/TW
                     for c in ["KR", "MY", "TW"]:
                         if c in alias.upper():
                             country = c
                             break
                 
-                # 提取其中的 IP 和 端口
-                # 匹配 @ip:port 或 @[ipv6]:port
                 match_link = re.search(r"@(\[?[a-fA-F0-9:.]+\]?):(\d+)", line)
                 if match_link:
                     ip = match_link.group(1).replace("[", "").replace("]", "")
@@ -75,7 +69,6 @@ def extract_ips():
 
             # 3. 如果成功提取出 IP，且端口是 443
             if ip and port == "443":
-                # 再次安全校验是否是合法 IP 格式
                 if re.match(r"^(\d{1,3}\.){3}\d{1,3}$", ip) or ":" in ip:
                     if country not in country_ips:
                         country_ips[country] = []

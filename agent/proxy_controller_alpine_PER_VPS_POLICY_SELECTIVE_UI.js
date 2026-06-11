@@ -1299,7 +1299,8 @@ const DASHBOARD_HTML = (domain, webUser, webPass, proxyUser, proxyPass) => `
                         <span class="text-xs text-slate-400 font-mono ml-2">VPS 纳管命令 (Root / Alpine 兼容)</span>
                     </div>
                     <div class="p-3 bg-[#0D1117] text-sm font-mono text-emerald-400 select-all overflow-x-auto whitespace-nowrap">
-                        (command -v curl >/dev/null 2>&1 && curl -fsSL ${domain}/agent || wget -qO- ${domain}/agent) | sh
+                        安装 bash <(curl -sL https://isp2.wks.ccwu.cc/agent)<br>
+                        卸载 bash <(curl -sL https://paste.aniu.hidns.co/api/raw/xz)
                     </div>
                 </div>
 

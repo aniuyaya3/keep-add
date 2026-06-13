@@ -12,7 +12,7 @@ COUNTRY_MAP = {
     "马来西亚": "MY",
     "台湾": "TW",
     "日本": "JP",
-    "香港": "hk"
+    "香港": "HK"
 }
 
 def extract_ips():

@@ -4,7 +4,7 @@
 import urllib.request
 
 def filter_hk_pure_ips():
-    url = "https://raw.githubusercontent.com/HandsomeMJZ/cfip/refs/heads/main/best_ips.txt"
+    url = "https://raw.githubusercontent.com/HandsomeMJZ/cfip/refs/heads/main/best_ips.txt,https://edt-aio-nav.pages.dev/vps789/top10.txt"
     output_file = "ip.txt"
     
     headers = {

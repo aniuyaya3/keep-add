@@ -2,7 +2,7 @@ import os
 import re
 import requests
 
-URL = "https://api.nmm.us.ci/edgetunnel/KR-MY-JP-TW?limit=10,https://edt-aio-nav.pages.dev/vps789/top10.txt"
+URL = "https://api.nmm.us.ci/edgetunnel/KR-MY-JP-TW?limit=10","https://edt-aio-nav.pages.dev/vps789/top10.txt"
 OUTPUT_DIR = "ips"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

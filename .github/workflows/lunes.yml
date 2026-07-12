@@ -1,0 +1,58 @@
+name: Auto-login-Lunes
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 */14 * *' # 每隔14天 12点(UTC 1点) 北京时间9点 运行
+
+jobs:
+  Renew-lunes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: 📥 下载代码
+        uses: actions/checkout@v6
+      - name: 🐍 设置 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          
+      - name: 🛠️ 安装系统依赖和Python依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install xvfb x11-utils xdotool scrot fonts-noto-cjk -y
+          pip install seleniumbase aiohttp requests
+          seleniumbase install chromedriver
+
+      - name: 🌐 设置sing-box代理转发
+        continue-on-error: true
+        env:
+          NODE_LINK: ${{ secrets.NODE_LINK }} # 在secret里设置 NODE_LINK 代理启用代理 
+        run: |
+          bash <(wget -qO- https://main.ssss.nyc.mn/setup_proxy.sh)
+ 
+      - name: 🚀 运行续期脚本
+        env:
+          LUNES_EMAIL: ${{ secrets.LUNES_EMAIL }}
+          LUNES_PASSWORD: ${{ secrets.LUNES_PASSWORD }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
+            python3 app.py
+          
+      - name: 🧹 清理旧的工作流运行记录
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          runs=$(gh run list --workflow="${{ github.workflow }}" --limit=100 --json databaseId --jq '.[].databaseId')
+          count=0
+          for run_id in $runs; do
+            count=$((count + 1))
+            if [ $count -gt 1 ]; then
+              echo "删除运行记录: $run_id"
+              gh run delete $run_id || true
+            fi
+          done 

@@ -24,7 +24,7 @@ jobs:
         pip install requests
 
     - name: Run IP fetcher script
-      run: python fetch_ips.py
+      run: python ips/fetch_ips.py
 
     - name: Commit and push changes
       run: |

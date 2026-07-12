@@ -28,7 +28,7 @@ jobs:
     - name: Run script
       run: |
         mkdir -p outputs
-        python i.py
+        python outputs/i.py
 
     - name: Commit and push if changed
       run: |

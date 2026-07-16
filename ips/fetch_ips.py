@@ -2,7 +2,7 @@ import os
 import re
 import requests
 
-URL = "https://api.nmm.us.ci/edgetunnel/KR-MY-JP-TW?limit=10"
+URL = "https://api.nmm.us.ci/edgetunnel/KR-MY-JP-HK-SG-TW?limit=10"
 OUTPUT_DIR = "ips"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -12,7 +12,8 @@ COUNTRY_MAP = {
     "马来西亚": "MY",
     "台湾": "TW",
     "日本": "JP",
-    "香港": "HK"
+    "香港": "HK",
+    "新加坡": "SG"
 }
 
 def extract_ips():

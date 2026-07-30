@@ -1,7 +1,9 @@
 name: IceHost Hourly KeepAlive
 
 on:
-  workflow_dispatch: # 由外部定时（如 cron-job.org）进行每小时触发
+  schedule:
+    - cron: '0 */4 * * *'  # 🟢 开启自动触发：每 4 小时自动执行一次
+  workflow_dispatch:       # 🟢 保留手动触发：允许你在网页上随时点击运行
 
 jobs:
   check-and-start:
@@ -17,7 +19,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # 核心改变：安装 seleniumbase 代替 playwright
           pip install seleniumbase requests
 
       - name: Set up WARP

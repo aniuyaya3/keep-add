@@ -67,7 +67,7 @@ def run():
                         cookies_to_add = raw_data.get("cookies", [])
                     print("检测到 JSON 格式 Cookie，正在解析...")
                 
-                # 尝试二：如果解析失败，说明填的是纯文本（icehostpl_session=... 或直接是加密串）
+                # 尝试二：如果解析失败，说明填的是纯文本
                 except json.JSONDecodeError:
                     print("检测到纯文本 Cookie 格式，正在自动提取并生成标准字段...")
                     
@@ -133,9 +133,10 @@ def run():
             send_tg_notification(msg, "icehost_debug_screenshot.png")
             return
 
-        # 5. 判定波兰语红框限制
+        # 5. 判定波兰语与英语红框限制
         page_source = sb.get_page_source()
-        keywords = ["Nie możesz przedłużyć", "niedawno to zrobiłeś", "kolejne 6 godziny"]
+        # 🟢 修复：增加了英文的报错关键词，防止英文面板误判
+        keywords = ["Nie możesz przedłużyć", "niedawno to zrobiłeś", "kolejne 6 godziny", "cannot extend", "recently", "next 6 hours"]
         is_limited = any(kw in page_source for kw in keywords)
 
         if is_limited:
@@ -143,7 +144,8 @@ def run():
             return
 
         # 6. 安全寻找并点击续期按钮
-        renew_btn_selector = "//*[not(*) and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'dodaj 6')]"
+        # 🟢 修复：同时兼容波兰语 "dodaj 6" 和 英语 "add 6"
+        renew_btn_selector = "//*[not(*) and (contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'dodaj 6') or contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'add 6'))]"
         
         try:
             print("正在等待续期按钮加载...")
@@ -160,11 +162,9 @@ def run():
             is_failed_due_to_limit = any(kw in current_source for kw in keywords)
             
             if is_failed_due_to_limit:
-                # 如果点击后页面上弹出了红框，说明“未到可续期时间”（续期未成功）
-                print("点击后，页面立刻弹出了限制提示：说明未到可续期时间（续期未成功）。结束本次运行（不发送 Telegram 提醒）。")
+                print("点击后，页面立刻弹出了限制提示：说明未到可续期时间。结束本次运行。")
                 return
             
-            # 如果没有弹出红框，说明时间确实被成功延长了，这时才执行刷新验证结果
             print("点击后未检测到报错红条，正在刷新页面确认续期结果...")
             sb.refresh()
             sb.sleep(5)
@@ -181,8 +181,12 @@ def run():
                 msg = "ℹ️ <b>IceHost 续期指令已发送</b>\n按钮已点击，请检查下方截图确认是否成功。"
                 print(msg)
                 send_tg_notification(msg, "icehost_debug_screenshot.png")
+                
         except Exception as e:
-            print(f"未在页面中找到可用的蓝色续期按钮（可能已被续满，或按钮标签发生变动）: {e}")
+            # 🟢 修复：加上了 TG 推送，找不到按钮时能在 TG 收到报错截图
+            error_msg = "❌ <b>IceHost 续期异常！</b>\n未找到续期按钮，可能是网页加载失败、被限制或按钮文本有变，请查看截图。"
+            print(f"未在页面中找到可用的续期按钮: {e}")
+            send_tg_notification(error_msg, "icehost_debug_screenshot.png")
 
 if __name__ == "__main__":
     run()

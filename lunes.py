@@ -282,8 +282,8 @@ def login(sb) -> bool:
     else:
         print("ℹ️ 未检测到 Turnstile")
 
-    print("🖱️ 提交登录...")
-    sb.press_keys('input[name="password"]', '\n')
+    print("🖱️ 点击登录按钮提交登录...")
+    sb.click('button[type="submit"]')
 
     print("⏳ 等待登录跳转...")
     for _ in range(12):
@@ -295,7 +295,7 @@ def login(sb) -> bool:
 
     cur_url = sb.get_current_url().split('?')[0].lower()
     page_title = sb.get_title() or ""
-    if cur_url.startswith("https://betadash.lunes.host") or "Lunes host | Account page" in page_title.lower():
+    if "login" not in cur_url and "account" in page_title.lower():
         print(f"✅ 登录成功！(URL: {sb.get_current_url()}, Title: {page_title})")
         return True
         
@@ -303,7 +303,7 @@ def login(sb) -> bool:
     sb.save_screenshot("login_failed.png")
     return False
 
-# ===== 修正后的 visit_server =====
+# 访问服务器页面
 def visit_server(sb) -> (bool, dict):
     print("🔍 正在查找服务器卡片...")
     try:
@@ -373,7 +373,6 @@ def main():
             pass
 
         if login(sb):
-            print("\n✅ 登录成功，正在处理服务器续期...")
             success, info = visit_server(sb)
             if success:
                 extra = f"服务器: {info['server_name']}\nID: {info['server_id']}"

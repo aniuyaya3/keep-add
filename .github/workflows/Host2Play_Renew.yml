@@ -3,7 +3,7 @@ name: Host2Play 续期
 on:
   workflow_dispatch:
   schedule:
-   - cron: '0 */20 * * *' # 每 6 小时自动后台运行一次
+   - cron: '0 */6 * * *' # 每 6 小时自动后台运行一次
 
 permissions:
   actions: write

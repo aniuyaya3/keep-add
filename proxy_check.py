@@ -258,7 +258,9 @@ def expand_proxy(proxy):
 # 检测
 # ============================================================
 def check_proxy(proxy):
+
     try:
+
         r = session.get(
             CHECK_API,
             params={
@@ -266,21 +268,28 @@ def check_proxy(proxy):
             },
             timeout=REQUEST_TIMEOUT
         )
+
         if r.status_code != 200:
+
             return {
                 "proxy": proxy,
                 "success": False,
                 "error": f"HTTP {r.status_code}",
             }
+
         try:
             data = r.json()
+
         except Exception:
+
             return {
                 "proxy": proxy,
                 "success": False,
                 "error": "JSON解析失败",
             }
+
         if not data.get("success"):
+
             return {
                 "proxy": proxy,
                 "success": False,
@@ -289,39 +298,112 @@ def check_proxy(proxy):
                     "检测失败"
                 ),
             }
+
+        # ====================================================
+        # 出口信息
+        # ====================================================
+
         exit_info = data.get("exit") or {}
-        location = (
-            exit_info.get("location")
-            or {}
+
+        # location 可能存在，也可能不存在
+        location = exit_info.get("location") or {}
+
+        # ====================================================
+        # 国家信息兼容读取
+        # ====================================================
+
+        country = (
+            location.get("country")
+            or location.get("country_name")
+            or location.get("countryName")
+            or exit_info.get("country")
+            or exit_info.get("country_name")
+            or exit_info.get("countryName")
+            or data.get("country")
+            or data.get("country_name")
+            or data.get("countryName")
         )
-        country = location.get(
-            "country",
-            "未知"
+
+        # ====================================================
+        # 城市
+        # ====================================================
+
+        city = (
+            location.get("city")
+            or location.get("city_name")
+            or location.get("cityName")
+            or exit_info.get("city")
+            or exit_info.get("city_name")
+            or data.get("city")
         )
+
+        # ====================================================
+        # 国家代码
+        # ====================================================
+
+        country_code = (
+            location.get("country_code")
+            or location.get("countryCode")
+            or exit_info.get("country_code")
+            or exit_info.get("countryCode")
+            or data.get("country_code")
+            or data.get("countryCode")
+        )
+
+        # ====================================================
+        # 最后兜底
+        # ====================================================
+
+        if not country:
+
+            # 如果有国家代码，也不要直接写未知
+            if country_code:
+                country = country_code
+
+            else:
+                country = "未知"
+
         response_time = data.get(
             "responseTime",
             0
         )
+
         return {
             "proxy": proxy,
             "success": True,
+
             "country": country,
+
+            "country_code": country_code,
+
+            "city": city,
+
             "exit": exit_info,
+
             "response_time": response_time,
+
+            # 保存完整 JSON，方便以后调试
+            "raw": data,
         }
+
     except requests.exceptions.Timeout:
+
         return {
             "proxy": proxy,
             "success": False,
             "error": "超时",
         }
+
     except requests.exceptions.RequestException as e:
+
         return {
             "proxy": proxy,
             "success": False,
             "error": str(e),
         }
+
     except Exception as e:
+
         return {
             "proxy": proxy,
             "success": False,

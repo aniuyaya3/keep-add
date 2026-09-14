@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   schedule:
     # 每30分钟运行
-    - cron: "44 4 * * *"
+    - cron: "44 0,4,8,12 * * *"
 permissions:
   contents: write
 jobs:

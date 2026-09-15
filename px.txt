@@ -1,13 +1,7 @@
-socks5://72.201.177.49:1080#住宅-United States
-socks5://72.223.15.182:1080#住宅-United States
-socks5://83.219.149.45:1080#住宅-Russia
-socks5://83.219.139.254:1080#住宅-Russia
-socks5://188.164.209.24:1080#住宅-Russia
-socks5://89.23.22.63:1080#住宅-Russia
-socks5://85.192.2.50:1080#住宅-Russia
-socks5://188.186.102.92:1080#住宅-Russia
-socks5://188.186.237.86:1080#住宅-Russia
-socks5://72.201.137.8:1080#住宅-United States
-socks5://31.200.197.21:1080#住宅-Russia
-socks5://83.220.105.220:1080#住宅-Poland
-socks5://1.52.214.217:1080#住宅-Vietnam
+https://70.62.178.154:443#住宅-United States
+http://45.173.228.217:1550#住宅-Ecuador
+socks5://93.120.175.195:1080#住宅-Russia
+http://49.48.40.75:8080#住宅-Thailand
+https://195.158.27.43:443#住宅-Uzbekistan
+http://49.48.107.147:8080#住宅-Thailand
+http://49.48.44.105:8080#住宅-Thailand

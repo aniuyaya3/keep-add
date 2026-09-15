@@ -42,7 +42,7 @@ DEFAULT_OUTPUT = "px.txt"
 # X 每组最多尝试 256 个
 MAX_X_VALUES = 256
 # 不同代理组并发数量
-MAX_WORKERS = 16
+MAX_WORKERS = 32
 # API 请求超时
 REQUEST_TIMEOUT = 20
 # 单个 X 组最多检测数量

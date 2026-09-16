@@ -1,6 +1,9 @@
-https://67.204.186.73:443#住宅-United States
-socks5://89.175.167.27:1080#住宅-Russia
-socks5://62.220.49.246:1080#住宅-Russia
-http://58.187.114.27:808#住宅-Vietnam
-http://36.72.180.122:8080#住宅-Indonesia
-socks5://178.207.106.38:1080#住宅-Russia
+socks5://96.246.235.230:1080#住宅-United States
+https://65.112.228.11:443#住宅-United States
+https://108.175.203.113:443#住宅-United States
+http://103.18.232.170:8080#住宅-Indonesia
+http://223.206.190.140:8080#住宅-Thailand
+http://103.18.185.30:8080#住宅-Indonesia
+socks5://81.233.97.176:1080#住宅-Sweden
+https://31.54.195.15:443#住宅-United Kingdom
+socks5://171.233.82.138:5004#住宅-Vietnam

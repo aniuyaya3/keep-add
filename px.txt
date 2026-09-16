@@ -1,9 +1,5 @@
-socks5://96.246.235.230:1080#住宅-United States
-https://65.112.228.11:443#住宅-United States
-https://108.175.203.113:443#住宅-United States
-http://103.18.232.170:8080#住宅-Indonesia
-http://223.206.190.140:8080#住宅-Thailand
-http://103.18.185.30:8080#住宅-Indonesia
-socks5://81.233.97.176:1080#住宅-Sweden
-https://31.54.195.15:443#住宅-United Kingdom
-socks5://171.233.82.138:5004#住宅-Vietnam
+http://177.106.206.99:8080#家宽-BrazilUberlandia
+socks5://95.139.43.12:1080#家宽-RussiaVolgograd
+https://222.127.105.43:443#家宽-PhilippinesMakati City
+https://222.127.30.162:443#家宽-PhilippinesSan Juan
+socks5://59.6.191.48:1080#家宽-South KoreaSeoul

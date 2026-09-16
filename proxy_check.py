@@ -1041,7 +1041,7 @@ def main():
                 ""
         )
         output_lines.append(
-            f"{proxy}#家宽-{country}{city}"
+            f"{proxy}#家宽_{country}_{city}"
         )
     output_lines = list(
         dict.fromkeys(

@@ -1036,8 +1036,12 @@ def main():
             "country",
             "未知"
         )
+        city = item.get(
+                "city",
+                ""
+        )
         output_lines.append(
-            f"{proxy}#住宅-{country}"
+            f"{proxy}#家宽-{country}{city}"
         )
     output_lines = list(
         dict.fromkeys(

@@ -1,5 +1,12 @@
-http://177.106.206.99:8080#家宽-BrazilUberlandia
-socks5://95.139.43.12:1080#家宽-RussiaVolgograd
-https://222.127.105.43:443#家宽-PhilippinesMakati City
-https://222.127.30.162:443#家宽-PhilippinesSan Juan
-socks5://59.6.191.48:1080#家宽-South KoreaSeoul
+https://108.60.228.210:443#家宽_Bahamas_Nassau
+https://87.144.223.251:443#家宽_Germany_Bad Oeynhausen
+https://213.17.227.226:8443#家宽_Poland_Warsaw
+https://166.139.68.3:9443#家宽_United States_Euless
+socks5://83.239.95.234:1080#家宽_Russia_Krasnodar
+http://154.73.181.185:8080#家宽_South Africa_Edenvale
+http://223.204.15.96:8080#家宽_Thailand_Khon Kaen
+socks5://90.189.132.138:1080#家宽_Russia_Novosibirsk
+http://223.204.177.186:3128#家宽_Thailand_Pattani
+http://223.204.177.34:3128#家宽_Thailand_Pattani
+socks5://90.189.110.170:1080#家宽_Russia_Moscow
+https://213.98.90.68:8080#家宽_Spain_Madrid

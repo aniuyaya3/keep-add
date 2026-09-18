@@ -1,5 +1,9 @@
-http://46.189.220.28:18080#家宽_Portugal_Lisbon
-http://123.28.249.242:8080#家宽_Vietnam_Hanoi
-socks5://95.66.170.210:1080#家宽_Russia_Vladimir
-socks5://160.30.205.160:8001#家宽_Vietnam_Hanoi
-http://123.28.249.229:8080#家宽_Vietnam_Hanoi
+https://209.91.184.202:443#家宽_Canada_Greater Sudbury
+http://45.177.147.119:80#家宽_Argentina_Buenos Aires
+https://88.217.7.122:443#家宽_Germany_Munich
+socks5://95.72.199.117:1080#家宽_Russia_Chekhov
+http://200.121.48.105:999#家宽_Peru_Lima
+socks5://221.141.233.180:1080#家宽_South Korea_Busan
+http://49.156.20.46:8082#家宽_Indonesia_Jakarta
+socks5://2.60.6.137:1080#家宽_Russia_Omsk
+http://218.232.234.167:80#家宽_South Korea_Seoul

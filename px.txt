@@ -1,10 +1,7 @@
-http://103.69.106.196:8090#家宽_Indonesia_Serang
-http://103.69.106.150:8185#家宽_Indonesia_Pasarkemis
-https://166.157.66.36:9443#家宽_United States_Plymouth Meeting
-socks5://221.141.233.180:1080#家宽_South Korea_Busan
-socks5://95.73.219.208:1080#家宽_Russia_Kubinka
-http://103.162.152.156:7070#家宽_Indonesia_Pasir Pengaraian
-http://203.175.103.99:8082#家宽_Indonesia_Kuningan
-socks5://112.166.86.128:1080#家宽_South Korea_Seoul
-https://195.158.27.43:443#家宽_Uzbekistan_Tashkent
-http://103.154.76.18:8080#家宽_Indonesia_Anjani Barat
+https://74.87.115.194:443#家宽_United States_Appleton
+https://189.206.130.187:443#家宽_Mexico_Mexico City
+http://178.20.91.164:8080#家宽_Germany_Berlin
+http://157.15.62.206:8082#家宽_Indonesia_Malang
+socks5://88.83.200.244:1080#家宽_Russia_Voronezh
+socks5://59.27.45.54:1080#家宽_South Korea_Seoul
+socks5://85.26.128.96:1080#家宽_Russia_Moscow

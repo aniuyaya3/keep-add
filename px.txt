@@ -1,6 +1,7 @@
-socks5://37.76.187.190:1080#家宽_Russia_Kotovsk
-http://103.146.147.37:8181#家宽_Indonesia_Jakarta
-http://103.6.166.23:8181#家宽_Indonesia_Jakarta
-http://160.187.221.150:8082#家宽_Philippines_Magpet
-http://113.11.179.175:8080#家宽_Indonesia_Kudus
-https://159.196.31.249:443#家宽_Australia_Brisbane
+http://42.119.152.38:50001#家宽_Vietnam_Hanoi
+http://213.141.251.100:8087#家宽_Russia_Moscow
+socks5://134.35.181.216:1080#家宽_Yemen_Sanaa
+socks5://171.233.24.44:5000#家宽_Vietnam_Ho Chi Minh City
+socks5://134.35.139.226:10800#家宽_Yemen_Sanaa
+https://58.162.7.38:443#家宽_Australia_Sydney
+socks5://5.164.188.59:1080#家宽_Russia_Samara

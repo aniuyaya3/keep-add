@@ -1,7 +1,6 @@
-https://74.87.115.194:443#家宽_United States_Appleton
-https://189.206.130.187:443#家宽_Mexico_Mexico City
-http://178.20.91.164:8080#家宽_Germany_Berlin
-http://157.15.62.206:8082#家宽_Indonesia_Malang
-socks5://88.83.200.244:1080#家宽_Russia_Voronezh
-socks5://59.27.45.54:1080#家宽_South Korea_Seoul
-socks5://85.26.128.96:1080#家宽_Russia_Moscow
+socks5://37.76.187.190:1080#家宽_Russia_Kotovsk
+http://103.146.147.37:8181#家宽_Indonesia_Jakarta
+http://103.6.166.23:8181#家宽_Indonesia_Jakarta
+http://160.187.221.150:8082#家宽_Philippines_Magpet
+http://113.11.179.175:8080#家宽_Indonesia_Kudus
+https://159.196.31.249:443#家宽_Australia_Brisbane

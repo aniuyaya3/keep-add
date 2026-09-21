@@ -1,7 +1,10 @@
-http://42.119.152.38:50001#家宽_Vietnam_Hanoi
-http://213.141.251.100:8087#家宽_Russia_Moscow
-socks5://134.35.181.216:1080#家宽_Yemen_Sanaa
-socks5://171.233.24.44:5000#家宽_Vietnam_Ho Chi Minh City
-socks5://134.35.139.226:10800#家宽_Yemen_Sanaa
-https://58.162.7.38:443#家宽_Australia_Sydney
-socks5://5.164.188.59:1080#家宽_Russia_Samara
+socks5://83.219.136.47:1080#家宽_Russia_Kaliningrad
+https://77.225.61.132:443#家宽_Spain_Sopela
+http://60.52.104.60:8081#家宽_Malaysia_Sungai Petani
+http://113.23.179.170:9090#家宽_Malaysia_Kuala Lumpur
+https://156.67.195.17:443#家宽_Austria_Hall in Tirol
+socks5://188.232.115.151:8083#家宽_Russia_Omsk
+socks5://45.131.186.161:11080#家宽_Russia_Yekaterinburg
+http://190.121.48.2:999#家宽_Chile_Valdivia
+socks5://180.93.102.159:40001#家宽_Russia_Novosibirsk
+socks5://85.142.178.44:1080#家宽_Russia_Admiralteisky

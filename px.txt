@@ -1,10 +1,9 @@
-http://38.158.202.76:999#家宽_Mexico_Aguascalientes
-socks5://91.201.233.53:8090#家宽_Ukraine_Lviv
-socks5://95.220.7.51:1080#家宽_Russia_Dmitrov
-http://124.40.249.213:8083#家宽_Indonesia_Yogyakarta
-socks5://89.189.74.186:1080#家宽_Yemen_Sanaa
-http://123.0.24.118:9108#家宽_Bangladesh_Dhaka
-http://209.198.150.223:8085#家宽_Yemen_Aden
-http://170.245.132.83:999#家宽_Paraguay_Asuncion
-http://38.129.9.155:8181#家宽_Indonesia_Jakarta
-socks5://117.1.211.28:1080#家宽_Vietnam_Hanoi
+https://108.50.245.128:443#家宽_United States_Elizabeth
+socks5://178.158.38.251:1080#家宽_Russia_Moscow
+http://78.137.65.99:8080#家宽_Yemen_Sanaa
+http://132.255.8.210:999#家宽_Argentina_San Juan
+socks5://81.222.205.73:1080#家宽_Russia_Moscow
+https://38.9.50.50:443#家宽_Peru_Lima
+http://218.250.118.202:8888#家宽_Hong Kong_Hong Kong
+socks5://46.161.240.178:10800#家宽_Yemen_Sanaa
+http://78.137.88.53:8080#家宽_Yemen_Sanaa

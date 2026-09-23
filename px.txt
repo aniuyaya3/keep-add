@@ -1,5 +1,6 @@
-socks5://109.170.22.130:1080#家宽_Russia_Moscow
-http://95.0.212.218:8080#家宽_Turkey_Kazan
-socks5://118.179.205.174:2080#家宽_Bangladesh_Dhaka
-socks5://31.135.252.5:1080#家宽_Russia_Kurgan
-https://119.15.190.220:443#家宽_Vietnam_Hanoi
+http://50.20.124.143:3128#家宽_United States_Las Vegas
+http://171.227.182.111:50001#家宽_Vietnam_Hoan Kiem
+socks5://83.237.108.174:1080#家宽_Russia_Moscow
+http://80.107.127.112:18080#家宽_Greece_Pallini
+socks5://83.237.92.106:1080#家宽_Russia_Moscow
+socks5://83.237.11.138:1080#家宽_Russia_Moscow

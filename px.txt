@@ -1,9 +1,5 @@
-https://108.50.245.128:443#家宽_United States_Elizabeth
-socks5://178.158.38.251:1080#家宽_Russia_Moscow
-http://78.137.65.99:8080#家宽_Yemen_Sanaa
-http://132.255.8.210:999#家宽_Argentina_San Juan
-socks5://81.222.205.73:1080#家宽_Russia_Moscow
-https://38.9.50.50:443#家宽_Peru_Lima
-http://218.250.118.202:8888#家宽_Hong Kong_Hong Kong
-socks5://46.161.240.178:10800#家宽_Yemen_Sanaa
-http://78.137.88.53:8080#家宽_Yemen_Sanaa
+socks5://109.170.22.130:1080#家宽_Russia_Moscow
+http://95.0.212.218:8080#家宽_Turkey_Kazan
+socks5://118.179.205.174:2080#家宽_Bangladesh_Dhaka
+socks5://31.135.252.5:1080#家宽_Russia_Kurgan
+https://119.15.190.220:443#家宽_Vietnam_Hanoi

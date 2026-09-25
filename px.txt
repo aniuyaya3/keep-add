@@ -1,6 +1,2 @@
-https://99.156.178.209:443#家宽_United States_Richland Hills
-https://189.250.48.42:443#家宽_Mexico_Tlalpan
-http://38.111.14.23:8080#家宽_Indonesia_Deli Serdang
-http://27.64.63.114:80#家宽_Vietnam_Ho Chi Minh City
-http://45.76.145.201:4530#家宽_Indonesia_Jakarta
-socks5://41.60.40.60:1080#家宽_Zimbabwe_Bulawayo
+http://118.71.116.107:50001#家宽_Vietnam_Hanoi
+socks5://93.123.189.213:1080#家宽_Russia_Shchyolkovo

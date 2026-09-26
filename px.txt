@@ -1,2 +1,1 @@
-socks5://125.20.205.62:1080#家宽_India_Bhopal
-socks5://103.58.251.74:1080#家宽_India_Kota
+socks5://37.204.241.141:1080#家宽_Russia_Moscow

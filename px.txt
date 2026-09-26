@@ -1,2 +1,2 @@
-http://118.71.116.107:50001#家宽_Vietnam_Hanoi
-socks5://93.123.189.213:1080#家宽_Russia_Shchyolkovo
+socks5://125.20.205.62:1080#家宽_India_Bhopal
+socks5://103.58.251.74:1080#家宽_India_Kota

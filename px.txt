@@ -1,1 +1,4 @@
-socks5://37.204.241.141:1080#家宽_Russia_Moscow
+https://50.184.176.222:8090#家宽_United States_Charleston
+socks5://213.96.245.47:1080#家宽_Spain_Valladolid
+http://160.25.54.34:7777#家宽_Indonesia_Caringin
+socks5://77.82.3.167:1080#家宽_Russia_Moscow

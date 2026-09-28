@@ -1,10 +1,5 @@
-https://193.25.2.239:443#家宽_Poland_Krakow
-socks5://83.239.95.234:1080#家宽_Russia_Krasnodar
-http://103.193.145.25:8089#家宽_Indonesia_Batam
-http://184.22.3.3:8080#家宽_Thailand_Ko Samui
-http://103.39.50.45:8082#家宽_Indonesia_Cirebon
-socks5://90.188.250.169:1080#家宽_Russia_Irkutsk
-socks5://116.111.61.98:4001#家宽_Vietnam_Hanoi
-socks5://116.111.59.20:4001#家宽_Vietnam_Hanoi
-socks5://116.111.58.119:4001#家宽_Vietnam_Hanoi
-http://49.48.103.224:8080#家宽_Thailand_Khwao Sinarin
+http://191.54.216.242:8080#家宽_Brazil_Uberlandia
+https://65.76.212.107:8443#家宽_United States_Bothell
+https://37.223.41.88:443#家宽_Spain_Barcelona
+socks5://82.144.85.78:1080#家宽_Russia_Moscow
+socks5://112.165.2.159:1080#家宽_South Korea_Gimcheon

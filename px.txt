@@ -1,4 +1,10 @@
-socks5://176.192.239.175:1080#家宽_Russia_Moscow
-socks5://90.150.52.50:1080#家宽_Russia_Moscow
-http://89.211.82.142:8080#家宽_Qatar_Doha
-https://162.191.139.40:8443#家宽_United States_Chicago
+https://193.25.2.239:443#家宽_Poland_Krakow
+socks5://83.239.95.234:1080#家宽_Russia_Krasnodar
+http://103.193.145.25:8089#家宽_Indonesia_Batam
+http://184.22.3.3:8080#家宽_Thailand_Ko Samui
+http://103.39.50.45:8082#家宽_Indonesia_Cirebon
+socks5://90.188.250.169:1080#家宽_Russia_Irkutsk
+socks5://116.111.61.98:4001#家宽_Vietnam_Hanoi
+socks5://116.111.59.20:4001#家宽_Vietnam_Hanoi
+socks5://116.111.58.119:4001#家宽_Vietnam_Hanoi
+http://49.48.103.224:8080#家宽_Thailand_Khwao Sinarin

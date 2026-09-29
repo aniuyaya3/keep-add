@@ -1,7 +1,7 @@
-socks5://143.202.210.76:1080#家宽_Paraguay_Ciudad del Este
-socks5://147.93.9.252:1080#家宽_Brazil_Sao Paulo
-http://37.136.172.167:9999#家宽_Finland_Helsinki
-http://37.136.143.125:9999#家宽_Finland_Helsinki
-socks5://171.242.235.160:5001#家宽_Vietnam_Hanoi
-http://37.136.9.79:9999#家宽_Finland_Helsinki
-https://103.116.19.42:443#家宽_India_Bengaluru
+https://221.126.247.53:22#家宽_Hong Kong_Hong Kong
+https://166.241.37.226:9443#家宽_United States_Euless
+socks5://78.85.188.110:1080#家宽_Russia_Kambarka
+https://213.81.148.228:443#家宽_Slovakia_Bratislava
+https://50.201.11.157:443#家宽_United States_Ocean City
+socks5://185.134.214.69:1080#家宽_Slovakia_Bratislava
+http://190.124.252.129:6666#家宽_Brazil_Simoes Filho

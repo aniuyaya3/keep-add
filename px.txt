@@ -1,5 +1,7 @@
-http://191.54.216.242:8080#家宽_Brazil_Uberlandia
-https://65.76.212.107:8443#家宽_United States_Bothell
-https://37.223.41.88:443#家宽_Spain_Barcelona
-socks5://82.144.85.78:1080#家宽_Russia_Moscow
-socks5://112.165.2.159:1080#家宽_South Korea_Gimcheon
+socks5://143.202.210.76:1080#家宽_Paraguay_Ciudad del Este
+socks5://147.93.9.252:1080#家宽_Brazil_Sao Paulo
+http://37.136.172.167:9999#家宽_Finland_Helsinki
+http://37.136.143.125:9999#家宽_Finland_Helsinki
+socks5://171.242.235.160:5001#家宽_Vietnam_Hanoi
+http://37.136.9.79:9999#家宽_Finland_Helsinki
+https://103.116.19.42:443#家宽_India_Bengaluru

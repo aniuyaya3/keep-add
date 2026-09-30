@@ -1,8 +1,7 @@
-https://24.138.164.34:443#家宽_Canada_Toronto
-https://83.168.130.71:443#家宽_Slovakia_Trnava
-https://83.135.88.98:443#家宽_Germany_Chemnitz
-http://1.52.120.143:8088#家宽_Vietnam_Hanoi
-http://122.118.54.144:8080#家宽_Taiwan_Taichung
-socks5://117.134.203.58:10800#家宽_Pakistan_Islamabad
-https://189.206.192.102:443#家宽_Mexico_Mexico City
-http://181.110.171.21:999#家宽_Argentina_Buenos Aires
+http://189.150.211.139:999#家宽_Mexico_Mexico City
+http://189.150.130.190:999#家宽_Mexico_Mexico City
+socks5://104.11.133.63:1080#家宽_United States_Columbus
+http://116.48.85.208:18080#家宽_Hong Kong_Hong Kong
+https://221.126.247.53:22#家宽_Hong Kong_Hong Kong
+socks5://130.193.165.54:1080#家宽_Iraq_Erbil
+https://210.19.96.163:443#家宽_Malaysia_Kuala Lumpur

@@ -1,10 +1,3 @@
-http://27.76.219.177:50001#家宽_Vietnam_Hoan Kiem
-http://27.76.220.22:50001#家宽_Vietnam_Hoan Kiem
-http://27.76.217.91:50001#家宽_Vietnam_Hoan Kiem
-http://27.76.216.253:50001#家宽_Vietnam_Hoan Kiem
-http://27.76.219.16:50001#家宽_Vietnam_Hoan Kiem
-http://27.76.219.175:50001#家宽_Vietnam_Hoan Kiem
-http://27.76.215.154:50001#家宽_Vietnam_Hoan Kiem
-socks5://91.234.183.79:1080#家宽_Russia_Moscow
-socks5://77.37.247.211:1080#家宽_Russia_Moscow
-https://181.126.49.38:443#家宽_Paraguay_Asuncion
+http://201.130.118.107:3128#家宽_Mexico_Tijuana
+http://92.116.163.110:3128#家宽_Germany_Frankfurt am Main
+http://103.164.49.54:8080#家宽_Pakistan_Pakistan Employees Cooperative Housing Society

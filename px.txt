@@ -1,3 +1,4 @@
-http://201.130.118.107:3128#家宽_Mexico_Tijuana
-http://92.116.163.110:3128#家宽_Germany_Frankfurt am Main
-http://103.164.49.54:8080#家宽_Pakistan_Pakistan Employees Cooperative Housing Society
+https://88.217.9.231:443#家宽_Germany_Munich
+https://97.89.30.153:443#家宽_United States_Gainesville
+https://151.74.215.49:443#家宽_Italy_Catania
+socks5://77.34.77.154:1080#家宽_Russia_Vladivostok

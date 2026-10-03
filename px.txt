@@ -1,9 +1,8 @@
-https://217.237.171.227:443#家宽_Germany_Berlin
-https://93.128.12.154:443#家宽_Germany_Berlin
-https://93.128.30.197:443#家宽_Germany_Berlin
-http://89.189.72.95:8080#家宽_Yemen_Sanaa
-http://125.163.139.250:8080#家宽_Indonesia_Batu
-socks5://171.241.156.41:5000#家宽_Vietnam_Hanoi
-http://89.189.92.37:8080#家宽_Yemen_Sanaa
-socks5://45.59.123.127:10800#家宽_United States_Atlanta
-socks5://171.241.157.216:5000#家宽_Vietnam_Hanoi
+socks5://77.37.203.137:1080#家宽_Russia_Moscow
+http://103.132.53.28:8080#家宽_Indonesia_Jakarta
+https://59.23.73.141:443#家宽_South Korea_Seongnam-si
+http://103.133.223.61:8082#家宽_Indonesia_Ponorogo
+http://209.61.12.137:999#家宽_Colombia_Pasto
+socks5://188.226.7.234:1080#家宽_Russia_Yekaterinburg
+http://45.65.226.40:999#家宽_Argentina_Moron
+http://113.192.12.227:8080#家宽_Indonesia_Jakarta

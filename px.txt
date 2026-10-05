@@ -1,8 +1,9 @@
-socks5://23.151.240.78:1080#家宽_United States_Johnson City
-http://201.130.108.251:3128#家宽_Mexico_Tijuana
-http://171.245.119.215:50001#家宽_Vietnam_Hanoi
-http://103.78.36.158:8081#家宽_Indonesia_Jakarta
-http://1.4.163.161:8080#家宽_Thailand_Bangkok
-http://171.245.113.125:50001#家宽_Vietnam_Hanoi
-http://102.222.132.14:8070#家宽_Eswatini_Manzini
-http://5.255.25.48:8080#家宽_Yemen_Sanaa
+socks5://91.156.254.83:1080#家宽_Finland_Jyvaeskylae
+https://88.130.199.72:443#家宽_Germany_Gelsenkirchen
+https://79.188.239.44:8443#家宽_Poland_Torun
+https://79.188.239.41:8443#家宽_Poland_Torun
+https://79.188.239.46:8443#家宽_Poland_Torun
+socks5://178.49.56.14:2080#家宽_Russia_Novosibirsk
+https://79.188.239.45:8443#家宽_Poland_Torun
+https://79.188.239.47:8443#家宽_Poland_Torun
+https://79.188.239.42:8443#家宽_Poland_Torun

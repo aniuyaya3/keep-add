@@ -1,14 +1,6 @@
-socks5://99.183.190.76:1080#家宽_United States_Brecksville
-socks5://91.156.254.83:1080#家宽_Finland_Jyvaeskylae
-http://171.245.52.165:50001#家宽_Vietnam_Hanoi
-socks5://202.137.142.92:1080#家宽_Laos_Vientiane
-socks5://178.49.56.14:2080#家宽_Russia_Novosibirsk
-https://79.188.239.46:8443#家宽_Poland_Torun
-https://79.188.239.47:8443#家宽_Poland_Torun
-http://175.107.30.110:8080#家宽_Pakistan_Lahore
-https://79.188.239.42:8443#家宽_Poland_Torun
-https://79.188.239.43:8443#家宽_Poland_Torun
-https://79.188.239.45:8443#家宽_Poland_Torun
-https://79.188.239.44:8443#家宽_Poland_Torun
-socks5://87.103.133.63:1080#家宽_Russia_Irkutsk
-https://79.188.239.41:8443#家宽_Poland_Torun
+http://189.51.168.164:999#家宽_Mexico_Merida
+https://66.210.50.131:443#家宽_United States_Rancho Santa Margarita
+https://190.6.65.226:443#家宽_Cuba_Havana
+http://103.210.119.157:8080#家宽_Indonesia_Jatiroto
+http://187.137.105.178:8080#家宽_Mexico_Tlalpan
+http://103.135.224.98:8080#家宽_Indonesia_Jakarta

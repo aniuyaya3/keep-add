@@ -1,10 +1,4 @@
-http://180.53.81.127:8080#家宽_Japan_Yokohama
-http://5.192.22.85:8080#家宽_United Arab Emirates_Dubai
-http://49.48.119.34:8080#家宽_Thailand_Khon Kaen
-http://49.48.46.148:8080#家宽_Thailand_Pattaya
-http://49.48.45.125:8080#家宽_Thailand_Pattaya
-http://49.48.43.63:8080#家宽_Thailand_Chon Buri
-http://89.211.253.238:8080#家宽_Qatar_Doha
-http://49.48.135.33:8080#家宽_Thailand_Khon Kaen
-socks5://80.87.148.185:1080#家宽_Russia_Moscow
-http://49.48.42.223:8080#家宽_Thailand_Pattaya
+socks5://45.13.186.165:10804#家宽_Belgium_Schaerbeek
+socks5://1.175.80.119:5555#家宽_Taiwan_Kaohsiung
+socks5://180.246.234.76:1080#家宽_Indonesia_Makassar
+http://103.120.70.252:8080#家宽_Pakistan_Gujranwala

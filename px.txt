@@ -1,6 +1,10 @@
-http://189.51.168.164:999#家宽_Mexico_Merida
-https://66.210.50.131:443#家宽_United States_Rancho Santa Margarita
-https://190.6.65.226:443#家宽_Cuba_Havana
-http://103.210.119.157:8080#家宽_Indonesia_Jatiroto
-http://187.137.105.178:8080#家宽_Mexico_Tlalpan
-http://103.135.224.98:8080#家宽_Indonesia_Jakarta
+http://180.53.81.127:8080#家宽_Japan_Yokohama
+http://5.192.22.85:8080#家宽_United Arab Emirates_Dubai
+http://49.48.119.34:8080#家宽_Thailand_Khon Kaen
+http://49.48.46.148:8080#家宽_Thailand_Pattaya
+http://49.48.45.125:8080#家宽_Thailand_Pattaya
+http://49.48.43.63:8080#家宽_Thailand_Chon Buri
+http://89.211.253.238:8080#家宽_Qatar_Doha
+http://49.48.135.33:8080#家宽_Thailand_Khon Kaen
+socks5://80.87.148.185:1080#家宽_Russia_Moscow
+http://49.48.42.223:8080#家宽_Thailand_Pattaya

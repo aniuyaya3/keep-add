@@ -1,5 +1,12 @@
-https://80.92.116.99:443#家宽_Austria_Hall in Tirol
-http://103.106.115.63:8080#家宽_Indonesia_Bandar Lampung
-socks5://42.116.203.203:20001#家宽_Vietnam_Hanoi
-socks5://42.116.203.7:20001#家宽_Vietnam_Hanoi
-http://201.163.170.106:999#家宽_Mexico_Mexico City
+socks5://38.45.72.175:1080#家宽_United States_Durham
+https://67.204.186.71:443#家宽_United States_Bend
+https://67.204.186.73:443#家宽_United States_Bend
+https://72.250.35.128:9443#家宽_United States_Chicago
+socks5://188.126.63.3:1080#家宽_Russia_Domodedovo
+http://1.4.160.171:8080#家宽_Thailand_Bangkok
+socks5://116.98.117.47:5001#家宽_Vietnam_Da Nang
+https://80.24.34.107:8090#家宽_Spain_Palma
+http://1.4.141.68:8080#家宽_Thailand_Bangkok
+socks5://134.35.200.30:1080#家宽_Yemen_Sanaa
+socks5://171.232.0.19:5000#家宽_Vietnam_Ho Chi Minh City
+socks5://171.232.0.159:5000#家宽_Vietnam_Ho Chi Minh City

@@ -1,8 +1,3 @@
-http://36.70.29.74:8080#家宽_Indonesia_Jakarta
-http://113.181.162.248:8083#家宽_Vietnam_Cao Bang
-http://118.71.208.50:8088#家宽_Vietnam_Hanoi
-socks5://27.69.77.5:1088#家宽_Vietnam_Hanoi
-socks5://5.143.136.43:1080#家宽_Russia_Belgorod
-http://175.110.50.27:8080#家宽_Yemen_Sanaa
-socks5://79.140.20.159:1080#家宽_Russia_Ufa
-socks5://116.97.240.124:1543#家宽_Vietnam_Ho Chi Minh City
+http://189.153.30.157:8080#家宽_Mexico_Mexico City
+http://175.121.217.179:3129#家宽_South Korea_Gwangmyeong
+http://125.25.76.116:8080#家宽_Thailand_Bangkok

@@ -1,7 +1,2 @@
-http://168.195.226.150:3131#家宽_Paraguay_Obligado
-http://187.133.46.219:999#家宽_Mexico_Tlalpan
-https://37.223.41.88:443#家宽_Spain_Barcelona
-http://103.170.96.193:8080#家宽_Indonesia_Pasuruan
-https://110.38.225.215:443#家宽_Pakistan_Lahore
-socks5://81.91.24.181:10800#家宽_Yemen_Sanaa
-http://118.103.236.153:8080#家宽_Pakistan_Karachi
+http://223.205.73.209:8080#家宽_Thailand_Bang Lamung
+socks5://62.183.30.20:1080#家宽_Russia_Krasnodar

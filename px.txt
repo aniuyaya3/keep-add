@@ -1,8 +1,8 @@
-socks5://167.88.166.102:1083#家宽_United States_Ocoee
-http://79.187.135.123:81#家宽_Poland_Gdynia
-http://203.162.17.100:8080#家宽_Vietnam_Ho Chi Minh City
-http://38.187.23.6:999#家宽_Peru_Huancayo
-http://203.130.10.94:8080#家宽_Pakistan_Karachi
-https://79.188.239.42:8443#家宽_Poland_Torun
-http://201.174.143.109:999#家宽_Mexico_Ciudad Juarez
-socks5://103.124.227.2:1083#家宽_Bangladesh_Dhaka
+http://201.170.106.6:999#家宽_Mexico_Ciudad Juarez
+socks5://23.191.176.193:1080#家宽_United States_Ajo
+http://201.170.60.194:999#家宽_Mexico_Tijuana
+http://201.170.63.180:999#家宽_Mexico_Tijuana
+http://14.254.243.231:8080#家宽_Vietnam_GJien Ban
+socks5://62.133.167.0:1080#家宽_Russia_Ufa
+http://181.78.195.137:999#家宽_Ecuador_Guayaquil
+http://201.170.169.116:999#家宽_Mexico_Tijuana

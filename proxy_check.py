@@ -1,50 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Residential Proxy Scanner (修复版)
-==================================
-在原版基础上的修复（逐项仿真验证，见 tests/test_scanner.py）：
-1. X 识别误判：原 `contains_x` 对整串做 `"X" in proxy.upper()`，
-   密码/域名里只要含字母 x（如 passx、example.com）就被当成 X 组，
-   随后 expand 按 IPv4 解析失败返回 []，代理被静默丢弃、从未检测。
-   → 改为只认 IPv4 主机段中“整段为 X”的 octet。
-2. 多 X 永久跳过：原 total=256^n > 256 时直接 return []，
-   两个 X 的代理永远不会被检测。
-   → 超过上限时随机采样 MAX_X_ATTEMPTS 个不重复候选，而不是放弃。
-3. Session 跨线程共享：requests.Session 非线程安全，16 线程共用一个
-   session 存在竞态。→ 改为 thread-local session。
-4. 检测 API 瞬时错误无重试：check API 在 Cloudflare 后面，瞬时
-   403/429/5xx 或非 JSON 响应会被当作该候选永久失败，一次抖动可
-   把整个 X 组误判为无可用。→ 对这类错误做 2 次指数退避重试
-   （success=false 的正常 JSON 不重试，不拖慢死代理扫描）。
-5. Telegram HTML 未转义：代理串里的 & < >（常见于密码/参数）会让
-   parse_mode=HTML 的消息被 TG 以 400 拒绝，通知静默丢失。
-   → 动态内容一律 html.escape；有效数为 0 时不再发送空文件
-   （空文件会被 TG 拒绝），消息文案同步改条件文案。
-6. 取源无重试、源列表不去重：fetch 抖动一次整轮失败；重复源会被
-   重复全量扫描。→ fetch 重试 3 次；源代理先去重再检测。
-7. 理论候选统计错误：原每个 X 代理固定 +256，与多 X 的真实候选数
-   不符，有效率被算歪。→ 按 min(256^n, MAX_X_ATTEMPTS) 计。
-8. px.txt 后缀含空格：API 返回的国家/城市是英文带空格
-   （如 United States / Los Angeles），拼进 `#家宽_...` 后缀会让
-   按空白切分的下游导入工具截断。→ 后缀空白统一替换为 _，并去掉 #。
-9. 多 Worker endpoint：cs/cs2/cs3/cs4 是各自独立的 Cloudflare
-   Worker，每次检测轮换 endpoint 分摊单 Worker 压力，重试（含连接
-   层异常）自动切到下一个做故障转移。启动时一次性探活剔除连接
-   层打不通的 endpoint——cs3/cs4 目前尚未部署（NXDOMAIN）会被
-   自动剔除，日后部署好无需改代码即自动纳入轮换。
-10. X 组内抢跑：滑动窗口同时保持多个检测在飞（默认 4），死代理
-    的超时互相重叠；全局信号量封顶总在飞数（默认 32，两个 Worker
-    各约一半，与旧版单 Worker 16 在飞相当），避免抢跑把 403 打出来。
-其余行为与原版保持一致：只筛 [家宽]、X 组命中第一个即停、
-不同组并发、机房过滤、按 responseTime 排序、TG 汇总 + 发文件。
 
-未改动的已知限制（避免误以为已支持）：
-- X 展开仍只支持 IPv4 主机；IPv6 中的 X 占位不展开（会明确日志跳过），
-  普通 IPv6 代理照常直检。
-- 没有全局截止时间：全灭的组仍要扫完 256 个候选（抢跑后只是更快），
-  组多时总时长随队列增长。
-"""
 import os
 import re
 import html
@@ -69,13 +25,7 @@ SOURCE_URL = (
     "https://raw.githubusercontent.com/watchttvv/"
     "free-proxy-list/refs/heads/main/proxy.txt"
 )
-# cs / cs2 / cs3 / cs4 是各自独立的 Cloudflare Worker（同组
-# anycast IP，但后端扩容/配额彼此独立），轮换分摊单 Worker 压力，
-# 重试时自动切换到下一个 endpoint 做故障转移。
-# 注意：截至 2026-10-12，cs3/cs4 尚未部署（公共 DNS 为 NXDOMAIN）。
-# 启动时有一次性探活：连接层打不通的 endpoint 会被自动剔除，
-# 所以先把 4 个都写进来，日后部署好 cs3/cs4 无需改代码即自动启用；
-# 全部探活失败时回退为完整列表，避免探活抖动误杀整轮扫描。
+
 CHECK_APIS = [
     "https://cs.uuu.dpdns.org/check",
     "https://cs2.uuu.dpdns.org/check",

@@ -1,87 +1,82 @@
-name: cs Proxy Check
+name: cs Proxy Scan
+
 on:
-  # 手动运行
-  workflow_dispatch:
-  # 每30分钟运行
   schedule:
-    - cron: "11 9,23 * * *"
+    # 每 3 小时一次（UTC），错开整点降低 GitHub 定时拥挤
+    - cron: "17 9,23 * * *"
+  workflow_dispatch:
+    inputs:
+      workers:
+        description: "组间并发"
+        required: false
+        default: "16"
+      race:
+        description: "X 组内抢跑窗口（1=顺序扫）"
+        required: false
+        default: "8"
+      max_inflight:
+        description: "全局在飞上限"
+        required: false
+        default: "64"
+
+# 回写 px.txt 需要写权限
 permissions:
   contents: write
+
+# 上一轮没跑完时不叠跑（定时和手动共用一个组，排队等待）
+concurrency:
+  group: proxy-scan
+  cancel-in-progress: false
+
 jobs:
-  check:
+  scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
-      # ======================================================
-      # Checkout
-      # ======================================================
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      # ======================================================
-      # Python
-      # ======================================================
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      # ======================================================
-      # Dependencies
-      # ======================================================
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-      # ======================================================
-      # Run
-      # ======================================================
-      - name: Run proxy checker
+        run: pip install "requests>=2.31"
+
+      - name: Run scanner
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         run: |
           python proxy_check.py \
-            --workers 16 \
+            --workers "${{ inputs.workers || '16' }}" \
+            --race "${{ inputs.race || '4' }}" \
+            --max-inflight "${{ inputs.max_inflight || '32' }}" \
             --output px.txt
-      # ======================================================
-      # 显示结果
-      # ======================================================
-      - name: Show result
-        run: |
-          echo "================================"
-          echo "px.txt"
-          echo "================================"
-          if [ -f px.txt ]; then
-            echo "有效代理数量："
-            wc -l px.txt
-            echo ""
-            echo "TOP 20："
-            head -20 px.txt
-          else
-            echo "px.txt 不存在"
-          fi
-      # ======================================================
-      # Artifact
-      # ======================================================
-      - name: Upload px.txt
-        uses: actions/upload-artifact@v4
+
+      - name: Upload px.txt artifact
+        if: always()
+        uses: actions/upload-artifact@v7
         with:
-          name: residential-proxy-list
+          name: px
           path: px.txt
           if-no-files-found: warn
-      # ======================================================
-      # Commit
-      # ======================================================
-      - name: Commit px.txt
+          retention-days: 7
+
+      - name: Commit px.txt back to repo
+        if: always()
         run: |
-          git config user.name \
-            "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ ! -f px.txt ]; then
+            echo "px.txt 不存在，跳过回写"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add px.txt
           if git diff --cached --quiet; then
-            echo "px.txt 没有变化"
+            echo "px.txt 无变化，跳过提交"
           else
-            git commit \
-              -m "update residential proxy list"
+            git commit -m "chore: update px.txt ($(date -u +%Y-%m-%dT%H:%MZ))"
             git push
           fi

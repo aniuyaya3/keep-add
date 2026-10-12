@@ -1,25 +1,53 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Residential Proxy Scanner
-=========================
-功能：
-1. 从 watchttvv/free-proxy-list 获取代理
-2. 只筛选 [家宽]
-3. 支持 socks5/http/https/turn/sstp
-4. 支持用户名密码
-5. 支持 IPv6
-6. X 自动展开 0~255
-7. X 组发现第一个可用代理后立即停止
-8. 普通代理直接检测
-9. 自动读取出口国家
-10. 自动判断住宅 / 机房
-11. 输出 px.txt
-12. Telegram 通知
-13. Telegram 发送 px.txt
+Residential Proxy Scanner (修复版)
+==================================
+在原版基础上的修复（逐项仿真验证，见 tests/test_scanner.py）：
+1. X 识别误判：原 `contains_x` 对整串做 `"X" in proxy.upper()`，
+   密码/域名里只要含字母 x（如 passx、example.com）就被当成 X 组，
+   随后 expand 按 IPv4 解析失败返回 []，代理被静默丢弃、从未检测。
+   → 改为只认 IPv4 主机段中“整段为 X”的 octet。
+2. 多 X 永久跳过：原 total=256^n > 256 时直接 return []，
+   两个 X 的代理永远不会被检测。
+   → 超过上限时随机采样 MAX_X_ATTEMPTS 个不重复候选，而不是放弃。
+3. Session 跨线程共享：requests.Session 非线程安全，16 线程共用一个
+   session 存在竞态。→ 改为 thread-local session。
+4. 检测 API 瞬时错误无重试：check API 在 Cloudflare 后面，瞬时
+   403/429/5xx 或非 JSON 响应会被当作该候选永久失败，一次抖动可
+   把整个 X 组误判为无可用。→ 对这类错误做 2 次指数退避重试
+   （success=false 的正常 JSON 不重试，不拖慢死代理扫描）。
+5. Telegram HTML 未转义：代理串里的 & < >（常见于密码/参数）会让
+   parse_mode=HTML 的消息被 TG 以 400 拒绝，通知静默丢失。
+   → 动态内容一律 html.escape；有效数为 0 时不再发送空文件
+   （空文件会被 TG 拒绝），消息文案同步改条件文案。
+6. 取源无重试、源列表不去重：fetch 抖动一次整轮失败；重复源会被
+   重复全量扫描。→ fetch 重试 3 次；源代理先去重再检测。
+7. 理论候选统计错误：原每个 X 代理固定 +256，与多 X 的真实候选数
+   不符，有效率被算歪。→ 按 min(256^n, MAX_X_ATTEMPTS) 计。
+8. px.txt 后缀含空格：API 返回的国家/城市是英文带空格
+   （如 United States / Los Angeles），拼进 `#家宽_...` 后缀会让
+   按空白切分的下游导入工具截断。→ 后缀空白统一替换为 _，并去掉 #。
+9. 多 Worker endpoint：cs/cs2/cs3/cs4 是各自独立的 Cloudflare
+   Worker，每次检测轮换 endpoint 分摊单 Worker 压力，重试（含连接
+   层异常）自动切到下一个做故障转移。启动时一次性探活剔除连接
+   层打不通的 endpoint——cs3/cs4 目前尚未部署（NXDOMAIN）会被
+   自动剔除，日后部署好无需改代码即自动纳入轮换。
+10. X 组内抢跑：滑动窗口同时保持多个检测在飞（默认 4），死代理
+    的超时互相重叠；全局信号量封顶总在飞数（默认 32，两个 Worker
+    各约一半，与旧版单 Worker 16 在飞相当），避免抢跑把 403 打出来。
+其余行为与原版保持一致：只筛 [家宽]、X 组命中第一个即停、
+不同组并发、机房过滤、按 responseTime 排序、TG 汇总 + 发文件。
+
+未改动的已知限制（避免误以为已支持）：
+- X 展开仍只支持 IPv4 主机；IPv6 中的 X 占位不展开（会明确日志跳过），
+  普通 IPv6 代理照常直检。
+- 没有全局截止时间：全灭的组仍要扫完 256 个候选（抢跑后只是更快），
+  组多时总时长随队列增长。
 """
 import os
 import re
+import html
 import json
 import time
 import random
@@ -28,8 +56,12 @@ import threading
 from concurrent.futures import (
     ThreadPoolExecutor,
     as_completed,
+    wait,
+    FIRST_COMPLETED,
 )
+
 import requests
+
 # ============================================================
 # 基础配置
 # ============================================================
@@ -37,80 +69,90 @@ SOURCE_URL = (
     "https://raw.githubusercontent.com/watchttvv/"
     "free-proxy-list/refs/heads/main/proxy.txt"
 )
-CHECK_API = "https://cs.uuu.dpdns.org/check"
+# cs / cs2 / cs3 / cs4 是各自独立的 Cloudflare Worker（同组
+# anycast IP，但后端扩容/配额彼此独立），轮换分摊单 Worker 压力，
+# 重试时自动切换到下一个 endpoint 做故障转移。
+# 注意：截至 2026-10-12，cs3/cs4 尚未部署（公共 DNS 为 NXDOMAIN）。
+# 启动时有一次性探活：连接层打不通的 endpoint 会被自动剔除，
+# 所以先把 4 个都写进来，日后部署好 cs3/cs4 无需改代码即自动启用；
+# 全部探活失败时回退为完整列表，避免探活抖动误杀整轮扫描。
+CHECK_APIS = [
+    "https://cs.uuu.dpdns.org/check",
+    "https://cs2.uuu.dpdns.org/check",
+    "https://cs3.uuu.dpdns.org/check",
+    "https://cs4.uuu.dpdns.org/check",
+]
 DEFAULT_OUTPUT = "px.txt"
-# X 每组最多尝试 256 个
-MAX_X_VALUES = 256
-# 不同代理组并发数量
-MAX_WORKERS = 16
-# API 请求超时
-REQUEST_TIMEOUT = 20
-# 单个 X 组最多检测数量
-MAX_X_ATTEMPTS = 256
+
+MAX_X_VALUES = 256        # 每个 X 取值 0~255
+MAX_WORKERS = 16          # 不同代理组并发数量
+REQUEST_TIMEOUT = 20      # API 请求超时（秒）
+MAX_X_ATTEMPTS = 256      # 单个 X 组最多实际检测的候选数
+API_RETRIES = 2           # 瞬时 HTTP 错误的额外重试次数
+RETRYABLE_STATUS = {403, 429, 500, 502, 503, 504}
+RACE_WINDOW = 4           # X 组内抢跑窗口（每组最多在飞检测数）
+MAX_INFLIGHT = 32         # 全局在飞检测上限（双 Worker 合计）
+
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 "
     "Chrome/131.0.0.0 Safari/537.36"
 )
+
 # ============================================================
 # Telegram
 # ============================================================
-TG_BOT_TOKEN = os.environ.get(
-    "TG_BOT_TOKEN",
-    ""
-).strip()
-TG_CHAT_ID = os.environ.get(
-    "TG_CHAT_ID",
-    ""
-).strip()
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "").strip()
+TG_CHAT_ID = os.environ.get("TG_CHAT_ID", "").strip()
+
 # ============================================================
-# Session
+# Session（thread-local，修复原版跨线程共享）
 # ============================================================
-session = requests.Session()
-session.headers.update({
-    "User-Agent": USER_AGENT,
-    "Accept": "application/json,text/plain,*/*",
-})
+_tls = threading.local()
+
+
+def get_session():
+    session = getattr(_tls, "session", None)
+    if session is None:
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": USER_AGENT,
+            "Accept": "application/json,text/plain,*/*",
+        })
+        _tls.session = session
+    return session
+
+
 print_lock = threading.Lock()
+
+
 def log(message):
     with print_lock:
         print(message, flush=True)
+
+
 # ============================================================
 # Telegram API
 # ============================================================
 def telegram_api(method, **kwargs):
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         return False
-    url = (
-        "https://api.telegram.org/"
-        f"bot{TG_BOT_TOKEN}/{method}"
-    )
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/{method}"
     try:
-        response = requests.post(
-            url,
-            data=kwargs,
-            timeout=30,
-        )
+        response = requests.post(url, data=kwargs, timeout=30)
         if response.status_code != 200:
-            log(
-                "[TG] API错误 "
-                f"{response.status_code}: "
-                f"{response.text[:500]}"
-            )
+            log(f"[TG] API错误 {response.status_code}: {response.text[:500]}")
             return False
         data = response.json()
         if not data.get("ok"):
-            log(
-                "[TG] Telegram返回错误："
-                f"{data}"
-            )
+            log(f"[TG] Telegram返回错误：{data}")
             return False
         return True
     except Exception as e:
-        log(
-            f"[TG] Telegram请求异常：{e}"
-        )
+        log(f"[TG] Telegram请求异常：{e}")
         return False
+
+
 def telegram_send_message(text):
     return telegram_api(
         "sendMessage",
@@ -119,21 +161,14 @@ def telegram_send_message(text):
         parse_mode="HTML",
         disable_web_page_preview="true",
     )
-def telegram_send_file(
-    filepath,
-    caption=""
-):
+
+
+def telegram_send_file(filepath, caption=""):
     if not TG_BOT_TOKEN or not TG_CHAT_ID:
         return False
-    url = (
-        "https://api.telegram.org/"
-        f"bot{TG_BOT_TOKEN}/sendDocument"
-    )
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendDocument"
     try:
-        with open(
-            filepath,
-            "rb"
-        ) as file:
+        with open(filepath, "rb") as file:
             response = requests.post(
                 url,
                 data={
@@ -151,331 +186,255 @@ def telegram_send_file(
                 timeout=60,
             )
         if response.status_code != 200:
-            log(
-                "[TG] 文件发送失败 "
-                f"{response.status_code}: "
-                f"{response.text[:500]}"
-            )
+            log(f"[TG] 文件发送失败 {response.status_code}: {response.text[:500]}")
             return False
         data = response.json()
         if not data.get("ok"):
-            log(
-                f"[TG] 文件发送失败：{data}"
-            )
+            log(f"[TG] 文件发送失败：{data}")
             return False
         return True
     except Exception as e:
-        log(
-            f"[TG] 文件发送异常：{e}"
-        )
+        log(f"[TG] 文件发送异常：{e}")
         return False
+
+
 # ============================================================
-# 获取代理源
+# 获取代理源（带重试）
 # ============================================================
 def fetch_source():
-    log(
-        f"[+] 获取代理列表：{SOURCE_URL}"
-    )
-    response = session.get(
-        SOURCE_URL,
-        timeout=REQUEST_TIMEOUT,
-    )
-    response.raise_for_status()
-    text = response.text
-    log(
-        "[+] 获取完成："
-        f"{len(text.splitlines())} 行"
-    )
-    return text
+    log(f"[+] 获取代理列表：{SOURCE_URL}")
+    last_exc = None
+    for attempt in range(3):
+        try:
+            response = get_session().get(SOURCE_URL, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+            text = response.text
+            log(f"[+] 获取完成：{len(text.splitlines())} 行")
+            return text
+        except Exception as e:
+            last_exc = e
+            if attempt < 2:
+                wait = 2 ** attempt
+                log(f"[!] 获取源失败（{e}），{wait}s 后重试")
+                time.sleep(wait)
+    raise last_exc
+
+
 # ============================================================
 # 代理 URL 提取
 # ============================================================
 PROXY_RE = re.compile(
-    r"""
-    (?P<url>
-        (?:socks5|http|https|turn|sstp)://
-        [^\s]+
-    )
-    """,
-    re.IGNORECASE | re.VERBOSE,
+    r"(?P<url>(?:socks5|http|https|turn|sstp)://[^\s]+)",
+    re.IGNORECASE,
 )
+
+
 def extract_proxy_lines(text):
     results = []
+    seen = set()
     for line in text.splitlines():
         line = line.strip()
-        if not line:
+        if not line or line.startswith("#"):
             continue
-        if line.startswith("#"):
-            continue
-        # ====================================================
-        # 核心：
         # 只处理 [家宽]
-        # ====================================================
         if "[家宽]" not in line:
             continue
         match = PROXY_RE.search(line)
         if not match:
             continue
-        proxy = match.group(
-            "url"
-        ).strip()
-        results.append({
-            "proxy": proxy,
-            "source_line": line,
-        })
+        proxy = match.group("url").strip()
+        if proxy in seen:  # 源去重，避免重复全量扫描
+            continue
+        seen.add(proxy)
+        results.append({"proxy": proxy, "source_line": line})
     return results
+
+
 # ============================================================
-# 判断是否包含 X
+# X 识别与展开（修复：只认 IPv4 主机段中整段为 X 的 octet）
 # ============================================================
-def contains_x(proxy):
-    return "X" in proxy.upper()
-# ============================================================
-# 展开 X
-# ============================================================
-def expand_proxy(proxy):
-    if not contains_x(proxy):
-        return [proxy]
-    # ========================================================
-    # 解析 scheme
-    # ========================================================
-    match = re.match(
-        r"^(?P<scheme>[a-zA-Z0-9]+://)"
-        r"(?P<authority>[^/]+)"
-        r"(?P<suffix>/.*)?$",
-        proxy,
-    )
+_PROXY_PARTS_RE = re.compile(
+    r"^(?P<scheme>[a-zA-Z0-9]+://)"
+    r"(?P<authority>[^/]+)"
+    r"(?P<suffix>/.*)?$"
+)
+_IPV4_HOSTPORT_RE = re.compile(
+    r"^(?P<host>(?:\d+|X)(?:\.(?:\d+|X)){3})(?P<port>:\d+)?$",
+    re.IGNORECASE,
+)
+
+
+def parse_proxy(proxy):
+    """拆出 scheme / auth_prefix / host / port / suffix；失败返回 None。"""
+    match = _PROXY_PARTS_RE.match(proxy)
     if not match:
-        log(
-            f"[!] 无法解析代理：{proxy}"
-        )
-        return []
-    scheme = match.group(
-        "scheme"
-    )
-    authority = match.group(
-        "authority"
-    )
-    suffix = (
-        match.group("suffix")
-        or ""
-    )
-    # ========================================================
-    # 用户名密码
-    # ========================================================
+        return None
+    authority = match.group("authority")
     if "@" in authority:
-        auth, hostport = (
-            authority.rsplit("@", 1)
-        )
+        auth, hostport = authority.rsplit("@", 1)
         auth_prefix = auth + "@"
     else:
         auth_prefix = ""
         hostport = authority
-    # ========================================================
-    # IPv4:port
-    # ========================================================
-    match = re.match(
-        r"^(?P<host>"
-        r"(?:\d+|X)"
-        r"(?:\.(?:\d+|X)){3}"
-        r")"
-        r"(?P<port>:\d+)?$",
-        hostport,
-        re.IGNORECASE,
-    )
+    return {
+        "scheme": match.group("scheme"),
+        "auth_prefix": auth_prefix,
+        "hostport": hostport,
+        "suffix": match.group("suffix") or "",
+    }
+
+
+def x_octet_positions(proxy):
+    """返回 IPv4 主机段中整段为 X 的 octet 下标列表；无 X 返回 []。
+
+    密码、域名、路径里出现的字母 x 不算 X 占位——这是原版最大的误判源。
+    """
+    parts = parse_proxy(proxy)
+    if not parts:
+        return []
+    match = _IPV4_HOSTPORT_RE.match(parts["hostport"])
     if not match:
-        log(
-            f"[!] X不是标准IPv4格式："
-            f"{proxy}"
-        )
         return []
-    host = match.group(
-        "host"
-    )
-    port = (
-        match.group("port")
-        or ""
-    )
-    parts = host.split(".")
-    if len(parts) != 4:
-        return []
-    x_positions = [
-        i
-        for i, part in enumerate(parts)
-        if part.upper() == "X"
-    ]
-    if not x_positions:
+    octets = match.group("host").split(".")
+    return [i for i, o in enumerate(octets) if o.upper() == "X"]
+
+
+def contains_x(proxy):
+    return bool(x_octet_positions(proxy))
+
+
+def theoretical_candidates(proxy):
+    positions = x_octet_positions(proxy)
+    if not positions:
+        return 1
+    return min(MAX_X_VALUES ** len(positions), MAX_X_ATTEMPTS)
+
+
+def expand_proxy(proxy):
+    positions = x_octet_positions(proxy)
+    if not positions:
+        # 含 X 占位但主机不是 IPv4 形式（如 IPv6 X）：明确日志，不静默丢
+        if _has_ipv6_x(proxy):
+            log(f"[!] 跳过（IPv6 X 占位不支持展开）：{proxy}")
+            return []
         return [proxy]
-    # ========================================================
-    # 理论数量
-    # ========================================================
-    total = (
-        MAX_X_VALUES
-        ** len(x_positions)
-    )
-    if total > MAX_X_ATTEMPTS:
-        log(
-            f"[!] 跳过 {proxy}："
-            f"需要 {total} 个候选"
+    parts = parse_proxy(proxy)
+    match = _IPV4_HOSTPORT_RE.match(parts["hostport"])
+    host = match.group("host")
+    port = match.group("port") or ""
+    octets = host.split(".")
+
+    def build(values):
+        current = list(octets)
+        for pos, value in zip(positions, values):
+            current[pos] = str(value)
+        return (
+            parts["scheme"] + parts["auth_prefix"]
+            + ".".join(current) + port + parts["suffix"]
         )
-        return []
-    # ========================================================
-    # 递归展开
-    # ========================================================
-    results = []
-    def recursive(
-        index,
-        current,
-    ):
-        if index == 4:
-            ip = ".".join(current)
-            results.append(
-                scheme
-                + auth_prefix
-                + ip
-                + port
-                + suffix
-            )
-            return
-        if parts[index].upper() == "X":
-            for value in range(
-                MAX_X_VALUES
-            ):
-                recursive(
-                    index + 1,
-                    current + [
-                        str(value)
-                    ],
-                )
-        else:
-            recursive(
-                index + 1,
-                current + [
-                    parts[index]
-                ],
-            )
-    recursive(0, [])
-    # ========================================================
-    # 随机顺序
-    #
-    # 避免每次都从 .0 开始
-    # ========================================================
+
+    total = MAX_X_VALUES ** len(positions)
+    if total <= MAX_X_ATTEMPTS:
+        results = []
+
+        def recursive(index, current):
+            if index == len(positions):
+                results.append(build(current))
+                return
+            for value in range(MAX_X_VALUES):
+                recursive(index + 1, current + [value])
+
+        recursive(0, [])
+        random.shuffle(results)
+        return results
+
+    # 多 X：随机采样 MAX_X_ATTEMPTS 个不重复候选（原版直接放弃整组）
+    log(
+        f"[!] {proxy}：理论候选 {total} 个，"
+        f"随机采样 {MAX_X_ATTEMPTS} 个检测"
+    )
+    sampled = set()
+    while len(sampled) < MAX_X_ATTEMPTS:
+        sampled.add(tuple(random.randrange(MAX_X_VALUES) for _ in positions))
+    results = [build(values) for values in sampled]
     random.shuffle(results)
     return results
+
+
+def _has_ipv6_x(proxy):
+    """仅方括号 IPv6 字面量里的 X 才算 IPv6 X 占位；
+    域名/主机名里的字母 x（如 example.com）绝不能误判。"""
+    parts = parse_proxy(proxy)
+    if not parts:
+        return False
+    hostport = parts["hostport"]
+    return hostport.startswith("[") and "X" in hostport.upper()
+
+
 # ============================================================
-# 国家识别
+# 国家 / 城市 / 住宅判断
+# （已按 2026-10-12 实测的 API 返回结构核对：exit.country /
+#  exit.country_code / exit.city / exit.is_datacenter 均真实存在）
 # ============================================================
+def _dig(data, *paths):
+    for path in paths:
+        current = data
+        ok = True
+        for key in path:
+            if not isinstance(current, dict) or not current.get(key):
+                ok = False
+                break
+            current = current[key]
+        if ok:
+            return str(current).strip()
+    return ""
+
+
 def get_country(data):
-    exit_info = (
-        data.get("exit")
-        or {}
+    value = _dig(
+        data,
+        ("exit", "location", "country"),
+        ("exit", "location", "country_name"),
+        ("exit", "country"),
+        ("exit", "country_name"),
+        ("country",),
+        ("country_name",),
+        # 兜底：只有代码没有名称时用代码，避免整列变“未知”
+        ("exit", "location", "country_code"),
+        ("exit", "country_code"),
+        ("country_code",),
     )
-    location = (
-        exit_info.get("location")
-        or {}
-    )
-    candidates = [
-        # location
-        location.get("country"),
-        location.get("country_name"),
-        location.get("countryName"),
-        # exit
-        exit_info.get("country"),
-        exit_info.get("country_name"),
-        exit_info.get("countryName"),
-        # 顶层
-        data.get("country"),
-        data.get("country_name"),
-        data.get("countryName"),
-    ]
-    for value in candidates:
-        if value:
-            value = str(
-                value
-            ).strip()
-            if value:
-                return value
-    return "未知"
-# ============================================================
-# 国家代码
-# ============================================================
+    return value or "未知"
+
+
 def get_country_code(data):
-    exit_info = (
-        data.get("exit")
-        or {}
+    return _dig(
+        data,
+        ("exit", "location", "country_code"),
+        ("exit", "location", "countryCode"),
+        ("exit", "country_code"),
+        ("exit", "countryCode"),
+        ("country_code",),
+        ("countryCode",),
     )
-    location = (
-        exit_info.get("location")
-        or {}
-    )
-    candidates = [
-        location.get("country_code"),
-        location.get("countryCode"),
-        exit_info.get("country_code"),
-        exit_info.get("countryCode"),
-        data.get("country_code"),
-        data.get("countryCode"),
-    ]
-    for value in candidates:
-        if value:
-            return str(
-                value
-            ).strip()
-    return ""
-# ============================================================
-# 城市
-# ============================================================
+
+
 def get_city(data):
-    exit_info = (
-        data.get("exit")
-        or {}
+    return _dig(
+        data,
+        ("exit", "location", "city"),
+        ("exit", "city"),
+        ("exit", "city_name"),
+        ("city",),
     )
-    location = (
-        exit_info.get("location")
-        or {}
-    )
-    candidates = [
-        location.get("city"),
-        location.get("city_name"),
-        location.get("cityName"),
-        exit_info.get("city"),
-        exit_info.get("city_name"),
-        data.get("city"),
-    ]
-    for value in candidates:
-        if value:
-            return str(
-                value
-            ).strip()
-    return ""
-# ============================================================
-# 判断是否住宅
-# ============================================================
+
+
 def is_residential(data):
-    exit_info = (
-        data.get("exit")
-        or {}
-    )
-    # ========================================================
-    # API 最可靠字段
-    # ========================================================
+    exit_info = data.get("exit") or {}
     if "is_datacenter" in exit_info:
-        return not bool(
-            exit_info.get(
-                "is_datacenter"
-            )
-        )
-    # ========================================================
-    # 其它可能字段
-    # ========================================================
+        return not bool(exit_info.get("is_datacenter"))
     if "is_datacenter" in data:
-        return not bool(
-            data.get(
-                "is_datacenter"
-            )
-        )
-    # ========================================================
-    # 如果 API 返回文字类型
-    # ========================================================
+        return not bool(data.get("is_datacenter"))
     values = [
         exit_info.get("type"),
         exit_info.get("network_type"),
@@ -487,664 +446,425 @@ def is_residential(data):
     for value in values:
         if not value:
             continue
-        value = str(
-            value
-        ).lower()
-        if (
-            "datacenter" in value
-            or "机房" in value
-        ):
+        value = str(value).lower()
+        if "datacenter" in value or "机房" in value:
             return False
-        if (
-            "residential" in value
-            or "住宅" in value
-        ):
+        if "residential" in value or "住宅" in value:
             return True
-    # ========================================================
-    # API 没有提供判断
-    #
-    # 因为源已经明确 [家宽]
-    # 所以允许保留
-    # ========================================================
+    # API 没有提供判断；源已明确 [家宽]，允许保留（与原版一致）
     return True
+
+
 # ============================================================
-# 检测代理
+# endpoint 轮换 + 全局在飞上限
+#
+# 轮换：每次检测（含重试）取下一个 endpoint，负载在 cs / cs2 两个
+# Worker 间均分；某 endpoint 返回可重试错误时，下一次重试天然落到
+# 另一个 Worker，等于自带故障转移。
+# 全局信号量：不管组间并发和组内抢跑开多大，真正同时打到 API 的
+# 请求数封顶 MAX_INFLIGHT，避免把两个 Worker 一起打到 403。
 # ============================================================
+_api_counter_lock = threading.Lock()
+_api_counter = 0
+_inflight_sem = threading.Semaphore(MAX_INFLIGHT)
+_active_apis = None
+_active_lock = threading.Lock()
+
+
+def probe_check_apis():
+    """一次性探活：拿到任意 HTTP 响应（含 403）就算 endpoint 存在；
+    只有连接层异常（DNS 不存在、连不上）才剔除。"""
+    alive = []
+    for url in CHECK_APIS:
+        try:
+            requests.get(
+                url,
+                params={"proxy": "http://127.0.0.1:9"},
+                timeout=10,
+                headers={"User-Agent": USER_AGENT},
+            )
+            alive.append(url)
+        except Exception:
+            log(f"[!] endpoint 不可用，本轮剔除：{url}")
+    if not alive:
+        log("[!] 全部 endpoint 探活失败，回退为完整列表")
+        return list(CHECK_APIS)
+    return alive
+
+
+def active_check_apis():
+    global _active_apis
+    if _active_apis is None:
+        with _active_lock:
+            if _active_apis is None:
+                _active_apis = probe_check_apis()
+                log(
+                    f"[+] 可用 endpoint {len(_active_apis)}/"
+                    f"{len(CHECK_APIS)}："
+                    + "、".join(
+                        u.split("/")[2] for u in _active_apis
+                    )
+                )
+    return _active_apis
+
+
+def next_check_api():
+    global _api_counter
+    apis = active_check_apis()
+    with _api_counter_lock:
+        url = apis[_api_counter % len(apis)]
+        _api_counter += 1
+    return url
+
+
 def check_proxy(proxy):
-    try:
-        response = session.get(
-            CHECK_API,
-            params={
-                "proxy": proxy
-            },
-            timeout=REQUEST_TIMEOUT,
-        )
+    with _inflight_sem:
+        return _check_proxy_inner(proxy)
+
+
+# ============================================================
+# 检测代理（瞬时 HTTP 错误重试；success=false 不重试）
+# ============================================================
+def _check_proxy_inner(proxy):
+    last_error = "检测失败"
+    for attempt in range(API_RETRIES + 1):
+        try:
+            response = get_session().get(
+                next_check_api(),
+                params={"proxy": proxy},
+                timeout=REQUEST_TIMEOUT,
+            )
+        except requests.exceptions.Timeout:
+            return {"proxy": proxy, "success": False, "error": "超时"}
+        except requests.exceptions.RequestException as e:
+            # 连接层异常（DNS/连接被拒等）多半是单个 endpoint 的问题：
+            # 切到下一个 endpoint 重试，而不是直接判这个候选死亡
+            last_error = str(e)
+            if attempt < API_RETRIES:
+                time.sleep((2 ** attempt) + random.uniform(0, 0.5))
+                continue
+            return {"proxy": proxy, "success": False, "error": last_error}
+        except Exception as e:
+            return {"proxy": proxy, "success": False, "error": str(e)}
+
         if response.status_code != 200:
-            return {
-                "proxy": proxy,
-                "success": False,
-                "error": (
-                    f"HTTP "
-                    f"{response.status_code}"
-                ),
-            }
+            last_error = f"HTTP {response.status_code}"
+            if response.status_code in RETRYABLE_STATUS and attempt < API_RETRIES:
+                time.sleep((2 ** attempt) + random.uniform(0, 0.5))
+                continue
+            return {"proxy": proxy, "success": False, "error": last_error}
+
         try:
             data = response.json()
         except Exception:
+            # CF 拦截页等非 JSON 响应同样按瞬时错误处理
+            last_error = "JSON解析失败"
+            if attempt < API_RETRIES:
+                time.sleep((2 ** attempt) + random.uniform(0, 0.5))
+                continue
+            return {"proxy": proxy, "success": False, "error": last_error}
+
+        if not data.get("success"):
             return {
                 "proxy": proxy,
                 "success": False,
-                "error": "JSON解析失败",
+                "error": data.get("error", "检测失败"),
             }
-        # ====================================================
-        # API success
-        # ====================================================
-        if not data.get(
-            "success"
-        ):
-            return {
-                "proxy": proxy,
-                "success": False,
-                "error": data.get(
-                    "error",
-                    "检测失败",
-                ),
-            }
-        # ====================================================
-        # 国家
-        # ====================================================
-        country = get_country(
-            data
-        )
-        country_code = (
-            get_country_code(
-                data
-            )
-        )
-        city = get_city(
-            data
-        )
-        # ====================================================
-        # 住宅判断
-        # ====================================================
-        residential = (
-            is_residential(
-                data
-            )
-        )
-        # ====================================================
-        # 延迟
-        # ====================================================
-        response_time = data.get(
-            "responseTime",
-            0,
-        )
+
+        country = get_country(data)
+        if country == "未知":
+            log("[DEBUG] 国家未知，API原始返回：")
+            log(json.dumps(data, ensure_ascii=False)[:5000])
+
         try:
-            response_time = int(
-                response_time
-            )
+            response_time = int(data.get("responseTime", 0))
         except Exception:
             response_time = 0
-        # ====================================================
-        # 调试：
-        # 如果国家仍然未知，输出原始 JSON
-        # ====================================================
-        if country == "未知":
-            log(
-                "[DEBUG] 国家未知，"
-                "API原始返回："
-            )
-            log(
-                json.dumps(
-                    data,
-                    ensure_ascii=False,
-                )[:5000]
-            )
-        # ====================================================
-        # 返回
-        # ====================================================
+
         return {
             "proxy": proxy,
             "success": True,
             "country": country,
-            "country_code": country_code,
-            "city": city,
-            "residential": residential,
+            "country_code": get_country_code(data),
+            "city": get_city(data),
+            "residential": is_residential(data),
             "response_time": response_time,
-            "exit": (
-                data.get("exit")
-                or {}
-            ),
+            "exit": data.get("exit") or {},
             "raw": data,
         }
-    except requests.exceptions.Timeout:
-        return {
-            "proxy": proxy,
-            "success": False,
-            "error": "超时",
-        }
-    except requests.exceptions.RequestException as e:
-        return {
-            "proxy": proxy,
-            "success": False,
-            "error": str(e),
-        }
-    except Exception as e:
-        return {
-            "proxy": proxy,
-            "success": False,
-            "error": str(e),
-        }
+    return {"proxy": proxy, "success": False, "error": last_error}
+
+
 # ============================================================
 # 普通代理
 # ============================================================
 def process_normal(proxy):
-    result = check_proxy(
-        proxy
-    )
-    if not result.get(
-        "success"
-    ):
+    result = check_proxy(proxy)
+    if not result.get("success"):
         return []
-    # ========================================================
-    # 如果 API 明确判断为机房
-    # 就不要写入
-    # ========================================================
-    if not result.get(
-        "residential",
-        True
-    ):
-        log(
-            f"[×] 机房过滤："
-            f"{proxy}"
-        )
+    if not result.get("residential", True):
+        log(f"[×] 机房过滤：{proxy}")
         return []
     log(
-        f"[✓] "
-        f"{proxy} "
-        f"-> "
-        f"{result['country']} "
+        f"[✓] {proxy} -> {result['country']} "
         f"{result['response_time']}ms"
     )
     return [result]
+
+
 # ============================================================
-# X 代理组
+# X 代理组：抢跑（滑动窗口）+ 命中即停
 #
-# 关键：
-#
-# 发现第一个可用代理
-# 立即停止这个 X 组
+# 原理：组内同时保持 RACE_WINDOW 个检测在飞，完成一个补一个，
+# 死代理的服务端超时互相重叠而不是串行累加。第一个返回的
+# “成功且住宅”即为命中：停发新候选、取消未启动的在飞任务；
+# 已发出的请求停不掉，结果直接丢弃（其线程仍占全局信号量
+# 直到自然结束，总量有界）。命中但机房不算命中，继续抢跑。
+# RACE_WINDOW=1 时退化为原版顺序扫。
 # ============================================================
 def process_x_group(source_proxy):
-    expanded = expand_proxy(
-        source_proxy
-    )
+    expanded = expand_proxy(source_proxy)
     if not expanded:
         return []
-    log(
-        f"[X] 开始："
-        f"{source_proxy} "
-        f"候选 {len(expanded)}"
-    )
+    window = max(1, RACE_WINDOW)
+    log(f"[X] 开始：{source_proxy} 候选 {len(expanded)} 抢跑窗口 {window}")
     checked = 0
-    for candidate in expanded:
-        checked += 1
-        result = check_proxy(
-            candidate
-        )
-        # ----------------------------------------------------
-        # 成功
-        # ----------------------------------------------------
-        if result.get(
-            "success"
-        ):
-            # ------------------------------------------------
-            # API 明确判断机房
-            # ------------------------------------------------
-            if not result.get(
-                "residential",
-                True
-            ):
-                log(
-                    f"[X] 命中但为机房："
-                    f"{candidate}"
-                )
-                continue
-            # ------------------------------------------------
-            # 找到住宅代理
-            # ------------------------------------------------
-            log(
-                f"[✓] X命中："
-                f"{candidate} "
-                f"-> "
-                f"{result['country']} "
-                f"{result['response_time']}ms "
-                f""
-                f"({checked}/"
-                f"{len(expanded)})"
-            )
-            # =================================================
-            # 核心：
-            #
-            # 立即停止
-            # =================================================
-            return [result]
-        # ----------------------------------------------------
-        # 每 50 个打印一次
-        # ----------------------------------------------------
-        if checked % 50 == 0:
-            log(
-                f"[X] "
-                f"{source_proxy} "
-                f"已检测 "
-                f"{checked}/"
-                f"{len(expanded)}"
-            )
-    log(
-        f"[×] X组无可用："
-        f"{source_proxy}"
-    )
-    return []
-# ============================================================
-# 处理一个源代理
-# ============================================================
-def process_source_proxy(
-    source_proxy
-):
-    if contains_x(
-        source_proxy
-    ):
-        return process_x_group(
-            source_proxy
-        )
-    return process_normal(
-        source_proxy
-    )
-# ============================================================
-# Telegram 汇总
-# ============================================================
-def build_telegram_message(
-    source_count,
-    candidate_count,
-    valid,
-    elapsed,
-):
-    valid_count = len(
-        valid
-    )
-    lines = []
-    lines.append(
-        "🏠 <b>住宅代理检测完成</b>"
-    )
-    lines.append("")
-    lines.append(
-        f"📥 源中家宽："
-        f"<b>{source_count}</b>"
-    )
-    lines.append(
-        f"🔎 X理论候选："
-        f"<b>{candidate_count}</b>"
-    )
-    lines.append(
-        f"✅ 有效住宅："
-        f"<b>{valid_count}</b>"
-    )
-    lines.append(
-        f"⏱ 耗时："
-        f"<b>{elapsed:.1f}s</b>"
-    )
-    if candidate_count:
-        rate = (
-            valid_count
-            / candidate_count
-            * 100
-        )
-        lines.append(
-            f"📊 有效率："
-            f"<b>{rate:.2f}%</b>"
-        )
-    lines.append("")
-    # ========================================================
-    # TOP 10
-    # ========================================================
-    if valid:
-        lines.append(
-            "🏆 <b>TOP 10</b>"
-        )
-        for index, item in enumerate(
-            valid[:10],
-            1
-        ):
-            proxy = item[
-                "proxy"
-            ]
-            country = item.get(
-                "country",
-                "未知"
-            )
-            city = item.get(
-                "city",
-                ""
-            )
-            latency = item.get(
-                "response_time",
-                0
-            )
-            location = country
-            if city:
-                location += (
-                    f" · {city}"
-                )
-            lines.append(
-                f"{index}. "
-                f"<code>{proxy}</code>\n"
-                f"   🌍 {location} "
-                f"⚡ {latency}ms"
-            )
+    hit = None
+
+    if window == 1:
+        for candidate in expanded:
+            checked += 1
+            result = check_proxy(candidate)
+            if result.get("success"):
+                if not result.get("residential", True):
+                    log(f"[X] 命中但为机房：{candidate}")
+                    continue
+                hit = result
+                break
+            if checked % 50 == 0:
+                log(f"[X] {source_proxy} 已检测 {checked}/{len(expanded)}")
     else:
-        lines.append(
-            "❌ "
-            "没有找到有效住宅代理"
+        candidates = iter(expanded)
+        executor = ThreadPoolExecutor(max_workers=window)
+        in_flight = {}
+
+        def fill():
+            while len(in_flight) < window:
+                try:
+                    candidate = next(candidates)
+                except StopIteration:
+                    return
+                in_flight[executor.submit(check_proxy, candidate)] = candidate
+
+        try:
+            fill()
+            while in_flight and hit is None:
+                done, _ = wait(
+                    list(in_flight), return_when=FIRST_COMPLETED
+                )
+                for future in done:
+                    candidate = in_flight.pop(future)
+                    checked += 1
+                    try:
+                        result = future.result()
+                    except Exception as e:
+                        result = {
+                            "proxy": candidate,
+                            "success": False,
+                            "error": str(e),
+                        }
+                    if result.get("success"):
+                        if not result.get("residential", True):
+                            log(f"[X] 命中但为机房：{candidate}")
+                            continue
+                        hit = result
+                        break
+                    if checked % 50 == 0:
+                        log(
+                            f"[X] {source_proxy} "
+                            f"已检测 {checked}/{len(expanded)}"
+                        )
+                if hit is None:
+                    fill()
+        finally:
+            # 不等待在飞的落败者：取消未启动的，已启动的丢弃结果
+            executor.shutdown(wait=False, cancel_futures=True)
+
+    if hit is not None:
+        log(
+            f"[✓] X命中：{hit['proxy']} -> {hit['country']} "
+            f"{hit['response_time']}ms ({checked}/{len(expanded)})"
         )
+        return [hit]
+    log(f"[×] X组无可用：{source_proxy}")
+    return []
+
+
+def process_source_proxy(source_proxy):
+    if contains_x(source_proxy):
+        return process_x_group(source_proxy)
+    return process_normal(source_proxy)
+
+
+# ============================================================
+# Telegram 汇总（动态内容全部 HTML 转义）
+# ============================================================
+def build_telegram_message(source_count, candidate_count, valid, elapsed):
+    valid_count = len(valid)
+    lines = ["🏠 <b>住宅代理检测完成</b>", ""]
+    lines.append(f"📥 源中家宽：<b>{source_count}</b>")
+    lines.append(f"🔎 X理论候选：<b>{candidate_count}</b>")
+    lines.append(f"✅ 有效住宅：<b>{valid_count}</b>")
+    lines.append(f"⏱ 耗时：<b>{elapsed:.1f}s</b>")
+    if candidate_count:
+        rate = valid_count / candidate_count * 100
+        lines.append(f"📊 有效率：<b>{rate:.2f}%</b>")
     lines.append("")
-    lines.append(
-        "📄 <b>px.txt</b> "
-        "将作为文件发送"
-    )
-    return "\n".join(
-        lines
-    )
+    if valid:
+        lines.append("🏆 <b>TOP 10</b>")
+        for index, item in enumerate(valid[:10], 1):
+            proxy = html.escape(item["proxy"])
+            country = html.escape(item.get("country", "未知"))
+            city = html.escape(item.get("city", ""))
+            latency = item.get("response_time", 0)
+            location = country + (f" · {city}" if city else "")
+            lines.append(
+                f"{index}. <code>{proxy}</code>\n"
+                f"   🌍 {location} ⚡ {latency}ms"
+            )
+        lines.append("")
+        lines.append("📄 <b>px.txt</b> 将作为文件发送")
+    else:
+        lines.append("❌ 没有找到有效住宅代理")
+    return "\n".join(lines)
+
+
+def _suffix_part(value):
+    """px.txt 后缀清洗：空白→_，去掉会截断注释的 #。"""
+    return re.sub(r"\s+", "_", str(value or "").strip()).replace("#", "")
+
+
 # ============================================================
 # 主程序
 # ============================================================
 def main():
+    global RACE_WINDOW, _inflight_sem
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=MAX_WORKERS,
-    )
-    parser.add_argument(
-        "--output",
-        default=DEFAULT_OUTPUT,
-    )
+    parser.add_argument("--workers", type=int, default=MAX_WORKERS)
+    parser.add_argument("--race", type=int, default=RACE_WINDOW,
+                        help="X 组内抢跑窗口，1=顺序扫")
+    parser.add_argument("--max-inflight", type=int, default=MAX_INFLIGHT,
+                        help="全局在飞检测上限（双 Worker 合计）")
+    parser.add_argument("--output", default=DEFAULT_OUTPUT)
     args = parser.parse_args()
+
+    RACE_WINDOW = max(1, args.race)
+    _inflight_sem = threading.Semaphore(max(1, args.max_inflight))
+    active = active_check_apis()
+    log(
+        f"[+] 检测 endpoint：{len(active)} 个轮换 "
+        f"抢跑窗口：{RACE_WINDOW} 全局在飞上限：{args.max_inflight}"
+    )
+
     start_time = time.time()
-    # ========================================================
-    # Telegram 状态
-    # ========================================================
-    if (
-        TG_BOT_TOKEN
-        and TG_CHAT_ID
-    ):
-        log(
-            "[TG] Telegram通知：已启用"
-        )
-    else:
-        log(
-            "[TG] Telegram通知：未配置"
-        )
-    # ========================================================
-    # 获取源
-    # ========================================================
+    log("[TG] Telegram通知：已启用" if (TG_BOT_TOKEN and TG_CHAT_ID)
+        else "[TG] Telegram通知：未配置")
+
     text = fetch_source()
-    # ========================================================
-    # 提取 [家宽]
-    # ========================================================
-    residential_sources = (
-        extract_proxy_lines(
-            text
-        )
-    )
-    source_count = len(
-        residential_sources
-    )
+    residential_sources = extract_proxy_lines(text)
+    source_count = len(residential_sources)
     log("")
-    log(
-        f"[+] [家宽]代理："
-        f"{source_count}"
-    )
+    log(f"[+] [家宽]代理：{source_count}")
+
     if not residential_sources:
-        open(
-            args.output,
-            "w",
-            encoding="utf-8"
-        ).close()
+        open(args.output, "w", encoding="utf-8").close()
         return
-    # ========================================================
-    # 统计 X 理论候选
-    # ========================================================
-    theoretical_candidates = 0
-    for item in residential_sources:
-        proxy = item[
-            "proxy"
-        ]
-        if contains_x(proxy):
-            theoretical_candidates += (
-                MAX_X_VALUES
-            )
-        else:
-            theoretical_candidates += 1
-    log(
-        "[+] 理论最大候选："
-        f"{theoretical_candidates}"
+
+    theoretical = sum(
+        theoretical_candidates(item["proxy"]) for item in residential_sources
     )
-    # ========================================================
-    # 开始检测
-    #
-    # 注意：
-    #
-    # 每个源代理是一个任务。
-    #
-    # X 内部顺序检测。
-    #
-    # 不同 X 组之间并发。
-    # ========================================================
+    log(f"[+] 理论最大候选：{theoretical}")
+
     valid = []
     completed_groups = 0
-    total_groups = len(
-        residential_sources
-    )
+    total_groups = len(residential_sources)
     log("")
-    log(
-        "[+] 开始检测："
-        f"{total_groups} 个源代理 "
-        f"/ 并发 {args.workers}"
-    )
-    with ThreadPoolExecutor(
-        max_workers=args.workers
-    ) as executor:
-        future_map = {}
-        for item in residential_sources:
-            source_proxy = item[
-                "proxy"
-            ]
-            future = executor.submit(
-                process_source_proxy,
-                source_proxy,
-            )
-            future_map[
-                future
-            ] = source_proxy
-        for future in as_completed(
-            future_map
-        ):
-            source_proxy = (
-                future_map[future]
-            )
+    log(f"[+] 开始检测：{total_groups} 个源代理 / 并发 {args.workers}")
+
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        future_map = {
+            executor.submit(process_source_proxy, item["proxy"]): item["proxy"]
+            for item in residential_sources
+        }
+        for future in as_completed(future_map):
+            source_proxy = future_map[future]
             completed_groups += 1
             try:
-                results = (
-                    future.result()
-                )
-                valid.extend(
-                    results
-                )
+                valid.extend(future.result())
             except Exception as e:
+                log(f"[!] 任务异常：{source_proxy} {e}")
+            if completed_groups % 10 == 0 or completed_groups == total_groups:
                 log(
-                    f"[!] 任务异常："
-                    f"{source_proxy} "
-                    f"{e}"
+                    f"[*] 进度：{completed_groups}/{total_groups} "
+                    f"有效：{len(valid)}"
                 )
-            if (
-                completed_groups % 10 == 0
-                or
-                completed_groups
-                == total_groups
-            ):
-                log(
-                    f"[*] 进度："
-                    f"{completed_groups}/"
-                    f"{total_groups} "
-                    f"有效："
-                    f"{len(valid)}"
-                )
-    # ========================================================
-    # 去重
-    # ========================================================
+
+    # 去重 + 按延迟排序
     unique = {}
     for item in valid:
-        proxy = item[
-            "proxy"
-        ]
-        if proxy not in unique:
-            unique[
-                proxy
-            ] = item
-    valid = list(
-        unique.values()
+        unique.setdefault(item["proxy"], item)
+    valid = sorted(
+        unique.values(),
+        key=lambda item: item.get("response_time", 999999),
     )
-    # ========================================================
-    # 延迟排序
-    # ========================================================
-    valid.sort(
-        key=lambda item:
-        item.get(
-            "response_time",
-            999999
-        )
-    )
-    # ========================================================
-    # 写 px.txt
-    # ========================================================
-    output_lines = []
-    for item in valid:
-        proxy = item[
-            "proxy"
-        ]
-        country = item.get(
-            "country",
-            "未知"
-        )
-        city = item.get(
-                "city",
-                ""
-        )
-        output_lines.append(
-            f"{proxy}#家宽_{country}_{city}"
-        )
-    output_lines = list(
-        dict.fromkeys(
-            output_lines
-        )
-    )
-    with open(
-        args.output,
-        "w",
-        encoding="utf-8"
-    ) as file:
+
+    output_lines = list(dict.fromkeys(
+        f"{item['proxy']}#家宽_{_suffix_part(item.get('country', '未知'))}"
+        f"_{_suffix_part(item.get('city', ''))}"
+        for item in valid
+    ))
+    with open(args.output, "w", encoding="utf-8") as file:
         if output_lines:
-            file.write(
-                "\n".join(
-                    output_lines
-                )
-                + "\n"
-            )
-    # ========================================================
-    # 完成统计
-    # ========================================================
-    elapsed = (
-        time.time()
-        - start_time
-    )
-    valid_count = len(
-        output_lines
-    )
+            file.write("\n".join(output_lines) + "\n")
+
+    elapsed = time.time() - start_time
+    valid_count = len(output_lines)
     log("")
     log("=" * 60)
     log("检测完成")
     log("=" * 60)
-    log(
-        f"[家宽]源："
-        f"{source_count}"
-    )
-    log(
-        f"理论候选："
-        f"{theoretical_candidates}"
-    )
-    log(
-        f"有效住宅："
-        f"{valid_count}"
-    )
-    log(
-        f"耗时："
-        f"{elapsed:.1f}s"
-    )
-    log(
-        f"输出："
-        f"{args.output}"
-    )
+    log(f"[家宽]源：{source_count}")
+    log(f"理论候选：{theoretical}")
+    log(f"有效住宅：{valid_count}")
+    log(f"耗时：{elapsed:.1f}s")
+    log(f"输出：{args.output}")
     log("=" * 60)
-    # ========================================================
-    # 输出 TOP 20
-    # ========================================================
+
     if output_lines:
         log("")
-        log(
-            "TOP 20："
-        )
+        log("TOP 20：")
         for line in output_lines[:20]:
             log(line)
-    # ========================================================
-    # Telegram
-    # ========================================================
-    if (
-        TG_BOT_TOKEN
-        and TG_CHAT_ID
-    ):
-        message = (
-            build_telegram_message(
-                source_count=source_count,
-                candidate_count=theoretical_candidates,
-                valid=valid,
-                elapsed=elapsed,
+
+    if TG_BOT_TOKEN and TG_CHAT_ID:
+        message = build_telegram_message(
+            source_count=source_count,
+            candidate_count=theoretical,
+            valid=valid,
+            elapsed=elapsed,
+        )
+        log("[TG] 发送检测统计...")
+        telegram_send_message(message)
+        if valid_count:
+            log("[TG] 发送 px.txt...")
+            caption = (
+                "📄 <b>住宅代理列表</b>\n"
+                f"有效数量：<b>{valid_count}</b>"
             )
-        )
-        # ----------------------------------------------------
-        # 发送统计
-        # ----------------------------------------------------
-        log(
-            "[TG] 发送检测统计..."
-        )
-        telegram_send_message(
-            message
-        )
-        # ----------------------------------------------------
-        # 发送 px.txt
-        # ----------------------------------------------------
-        log(
-            "[TG] 发送 px.txt..."
-        )
-        caption = (
-            "📄 <b>住宅代理列表</b>\n"
-            f"有效数量：<b>{valid_count}</b>"
-        )
-        telegram_send_file(
-            args.output,
-            caption
-        )
-# ============================================================
-# Entry
-# ============================================================
+            telegram_send_file(args.output, caption)
+        else:
+            log("[TG] 有效数为 0，跳过空文件发送")
+
+
 if __name__ == "__main__":
     main()

@@ -1,3 +1,11 @@
-socks5://176.193.170.198:1080#家宽_Russia_Korolev
-socks5://2.60.85.51:1080#家宽_Russia_Omsk
-http://180.251.50.229:8080#家宽_Indonesia_Jakarta
+http://80.176.38.207:80#家宽_United Kingdom_Leigh
+http://83.135.89.181:80#家宽_Germany_Chemnitz
+http://1.53.77.66:50001#家宽_Vietnam_Hanoi
+http://45.226.227.220:999#家宽_Argentina_Pocito
+http://80.176.163.44:80#家宽_United Kingdom_London
+socks5://89.23.11.167:1080#家宽_Russia_Pskov
+http://1.53.155.34:50001#家宽_Vietnam_Hanoi
+http://46.246.152.174:8080#家宽_Greece_Athens
+http://45.226.227.218:999#家宽_Argentina_Pocito
+https://162.191.139.40:8443#家宽_United States_Chicago
+https://166.157.66.36:9443#家宽_United States_Plymouth Meeting

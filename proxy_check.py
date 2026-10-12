@@ -40,8 +40,8 @@ REQUEST_TIMEOUT = 20      # API 请求超时（秒）
 MAX_X_ATTEMPTS = 256      # 单个 X 组最多实际检测的候选数
 API_RETRIES = 2           # 瞬时 HTTP 错误的额外重试次数
 RETRYABLE_STATUS = {403, 429, 500, 502, 503, 504}
-RACE_WINDOW = 4           # X 组内抢跑窗口（每组最多在飞检测数）
-MAX_INFLIGHT = 32         # 全局在飞检测上限（双 Worker 合计）
+RACE_WINDOW = 8           # X 组内抢跑窗口（每组最多在飞检测数）
+MAX_INFLIGHT = 64         # 全局在飞检测上限（双 Worker 合计）
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

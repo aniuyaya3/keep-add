@@ -1,9 +1,6 @@
-socks5://204.116.148.90:1080#家宽_United_States_Moncks_Corner
-socks5://71.44.207.66:1080#家宽_United_States_Lamont
-http://179.8.172.85:999#家宽_Chile_Santiago
-socks5://103.156.43.132:1080#家宽_Vietnam_Hanoi
-socks5://87.255.250.249:1080#家宽_Russia_Ivanovo
-http://58.136.217.215:8080#家宽_Thailand_Bangkok
-http://5.255.24.87:8080#家宽_Yemen_Sanaa
-socks5://143.105.252.204:1080#家宽_Botswana_Gaborone
-http://170.239.207.35:999#家宽_Colombia_Bogota
+https://219.114.105.162:443#家宽_Japan_Tokyo
+socks5://188.211.161.45:1080#家宽_United_Kingdom_London
+socks5://14.32.24.79:1080#家宽_South_Korea_Seoul
+http://177.66.42.70:999#家宽_Brazil_Santo_Cristo
+http://180.73.80.34:8080#家宽_Malaysia_Ampang
+http://200.94.24.101:999#家宽_Mexico_Mexico_City

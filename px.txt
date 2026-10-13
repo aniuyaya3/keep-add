@@ -1,7 +1,8 @@
-https://192.110.193.181:443#家宽_United_States_Bellevue
-https://142.202.183.249:8443#家宽_Canada_Cochrane
-http://83.135.89.181:80#家宽_Germany_Chemnitz
-http://103.14.111.188:3128#家宽_Indonesia_Jakarta
-https://202.57.35.91:443#家宽_Philippines_Pasig_City
-https://162.191.139.40:8443#家宽_United_States_Chicago
-http://95.218.196.63:8080#家宽_Saudi_Arabia_Riyadh
+socks5://50.91.141.250:1080#家宽_United_States_View_Park-Windsor_Hills
+http://187.173.192.82:999#家宽_Mexico_Tlalpan
+http://194.246.92.70:8080#家宽_Ukraine_Luhansk
+http://176.208.115.230:81#家宽_Russia_Belgorod
+http://190.108.19.250:80#家宽_Uruguay_Montevideo
+http://103.220.23.91:9090#家宽_Indonesia_Surabaya
+http://92.124.222.138:81#家宽_Russia_Ulan-Ude
+socks5://129.222.108.201:1080#家宽_Madagascar_Antananarivo

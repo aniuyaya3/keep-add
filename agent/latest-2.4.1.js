@@ -281,7 +281,6 @@ def _load_saved_port(default):
 
 BASE_PROXY_PORT = _load_saved_port(${PROXY_PORT})
 LOG_MAX_BYTES = 256 * 1024
-REPORT_LOG_BYTES = 12 * 1024
 MANAGER_LOG_FILE = WORKSPACE / "manager.log"
 
 GOLDEN_NODES_FILE = WORKSPACE / "golden_nodes.json"
@@ -352,29 +351,13 @@ def append_bounded_log(log_file, stream):
         pass
 
 
-def read_recent_log(log_file):
+def read_recent_logs():
+    """面板实时日志：只取 manager.log 最新 30 行（不再拼 journalctl/ovpn 日志，保持面板干净）。"""
     try:
-        return log_file.read_text(errors="replace")[-REPORT_LOG_BYTES:]
+        lines = MANAGER_LOG_FILE.read_text(errors="replace").splitlines()
+        return "\\n".join(lines[-30:])
     except:
         return ""
-
-
-def read_recent_logs():
-    try:
-        result = subprocess.run(
-            ["journalctl", "-u", "proxy-lite.service", "-n", "120", "--no-pager", "-o", "short-iso"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=5
-        )
-        journal = result.stdout.decode("utf-8", errors="replace").strip()
-        if journal:
-            return journal[-REPORT_LOG_BYTES:]
-    except:
-        pass
-    manager = read_recent_log(MANAGER_LOG_FILE)
-    openvpn = read_recent_log(WORKSPACE / "ovpn_err_0.log")
-    return (manager + "\\n" + openvpn)[-REPORT_LOG_BYTES:]
 
 
 class BoundedTee:
@@ -1529,7 +1512,7 @@ const DASHBOARD_HTML = (domain, webUser, webPass, proxyUser, proxyPass, proxyPor
     </style>
 
     <script>
-        const EXPECTED_AGENT = '2.4.0';
+        const EXPECTED_AGENT = '2.4.1';
         const terminalLogs = [];
         const policyState = { servers: {}, defaults: null, intervals: { config: 15, heartbeat: 30, frontend: 5 }, known: new Map() };
         const manualIps = new Set();

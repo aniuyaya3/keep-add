@@ -287,6 +287,9 @@ MANAGER_LOG_FILE = WORKSPACE / "manager.log"
 GOLDEN_NODES_FILE = WORKSPACE / "golden_nodes.json"
 golden_nodes = {}
 golden_lock = threading.Lock()
+# 金库（极品保留库）保鲜机制：容量上限 + 淘汰到半（FIFO by added_at）
+GOLDEN_MAX = 50        # 金库节点数上限
+GOLDEN_TRIM_TO = 25    # 超上限时保留最新的 25 个，淘汰其余最旧
 
 WEB_USER = "${WEB_USER}"
 WEB_PASS = "${WEB_PASS}"
@@ -493,6 +496,14 @@ def add_golden_node(node):
             "ip": node["ip"], "country": node["country"], "config": node["config"],
             "ping": node.get("ping", 9999), "added_at": time.time()
         }
+        # 金库保鲜：超过上限则按 added_at 保留最新的 GOLDEN_TRIM_TO 个，淘汰其余最旧
+        if len(golden_nodes) > GOLDEN_MAX:
+            by_time = sorted(golden_nodes.values(), key=lambda x: x.get("added_at", 0), reverse=True)
+            keep_ips = {n["ip"] for n in by_time[:GOLDEN_TRIM_TO]}
+            trimmed = [ip for ip in golden_nodes if ip not in keep_ips]
+            for ip in trimmed:
+                del golden_nodes[ip]
+            print(f"[*] 金库已达上限({GOLDEN_MAX})，已淘汰 {len(trimmed)} 个最旧节点，保留最新 {GOLDEN_TRIM_TO} 个", flush=True)
     save_golden_nodes()
 
 
@@ -827,6 +838,10 @@ def connect_slot(slot: int, node: dict, epoch: int, is_manual: bool):
                         return
                     _kill_proc(process)
                     add_to_blacklist(node["ip"], node["country"], reason="fault", duration=60)
+                    # 组合2：金库节点业务核验失败 → 移出金库，避免僵尸节点反复当选
+                    if not is_manual and node["ip"] in golden_nodes:
+                        remove_golden_node(node["ip"])
+                        print(f"[*] 金库节点 {node['ip']} 业务不可用，已移出保留库", flush=True)
                     return
             if not is_manual:
                 add_golden_node(node)
@@ -857,6 +872,10 @@ def connect_slot(slot: int, node: dict, epoch: int, is_manual: bool):
                     print(f"[-] 手动模式: {manual_status}", flush=True)
             elif not _stale():
                 add_to_blacklist(node["ip"], node["country"], reason="fault", duration=60)
+                # 组合2：金库节点拨号失败 → 移出金库，避免失效旧IP反复试错
+                if node["ip"] in golden_nodes:
+                    remove_golden_node(node["ip"])
+                    print(f"[*] 金库节点 {node['ip']} 拨号失败，已移出保留库", flush=True)
     finally:
         # 过期线程不得清除新代际的 connecting 标记（否则会导致重复拨号）
         with pool_lock:

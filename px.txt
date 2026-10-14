@@ -1,3 +1,8 @@
-http://191.102.68.203:999#家宽_Colombia_Bogota
-socks5://14.33.173.61:1080#家宽_South_Korea_Suwon
+http://190.253.116.114:999#家宽_Colombia_Bogota
+http://200.233.248.46:8080#家宽_Brazil_Uberlandia
+socks5://189.15.22.107:1080#家宽_Brazil_Uberlandia
+https://59.12.212.30:443#家宽_South_Korea_Icheon-si
+socks5://5.164.178.96:1080#家宽_Russia_Samara
+socks5://183.80.126.229:1080#家宽_Vietnam_Ho_Chi_Minh_City
+socks5://151.158.51.160:1080#家宽_Bangladesh_Dhaka
 socks5://195.68.163.141:1080#家宽_Russia_Moscow

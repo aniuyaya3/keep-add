@@ -1,8 +1,9 @@
-http://190.253.116.114:999#家宽_Colombia_Bogota
-http://200.233.248.46:8080#家宽_Brazil_Uberlandia
-socks5://189.15.22.107:1080#家宽_Brazil_Uberlandia
-https://59.12.212.30:443#家宽_South_Korea_Icheon-si
-socks5://5.164.178.96:1080#家宽_Russia_Samara
-socks5://183.80.126.229:1080#家宽_Vietnam_Ho_Chi_Minh_City
-socks5://151.158.51.160:1080#家宽_Bangladesh_Dhaka
-socks5://195.68.163.141:1080#家宽_Russia_Moscow
+http://180.183.160.31:8080#家宽_Thailand_Mueang_Nonthaburi
+http://45.230.11.65:999#家宽_Argentina_Clorinda
+http://180.183.109.59:8080#家宽_Thailand_Pathum_Thani
+http://180.74.111.156:8080#家宽_Malaysia_Kuala_Lumpur
+http://180.183.32.89:8080#家宽_Thailand_Bangkok
+http://180.183.199.204:8080#家宽_Thailand_Mueang_Nonthaburi
+socks5://106.81.204.161:10808#家宽_United_States_Los_Angeles
+http://180.183.145.10:8080#家宽_Thailand_Mueang_Nonthaburi
+socks5://14.32.24.79:1080#家宽_South_Korea_Seoul

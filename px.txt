@@ -1,9 +1,8 @@
-http://180.183.160.31:8080#家宽_Thailand_Mueang_Nonthaburi
-http://45.230.11.65:999#家宽_Argentina_Clorinda
-http://180.183.109.59:8080#家宽_Thailand_Pathum_Thani
-http://180.74.111.156:8080#家宽_Malaysia_Kuala_Lumpur
-http://180.183.32.89:8080#家宽_Thailand_Bangkok
-http://180.183.199.204:8080#家宽_Thailand_Mueang_Nonthaburi
-socks5://106.81.204.161:10808#家宽_United_States_Los_Angeles
-http://180.183.145.10:8080#家宽_Thailand_Mueang_Nonthaburi
-socks5://14.32.24.79:1080#家宽_South_Korea_Seoul
+http://170.80.241.82:999#家宽_Mexico_Mexico_City
+http://38.210.179.24:999#家宽_Mexico_Jacala
+http://181.235.239.108:999#家宽_Colombia_Bogota
+https://88.135.143.159:443#家宽_Latvia_Riga
+http://150.228.115.209:3129#家宽_United_Kingdom_London
+http://103.189.250.87:8080#家宽_Indonesia_Banyuwangi
+socks5://178.44.207.72:1080#家宽_Russia_Novotroitsk
+https://83.13.36.250:443#家宽_Poland_Bialystok

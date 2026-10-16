@@ -1,8 +1,9 @@
-http://170.80.241.82:999#家宽_Mexico_Mexico_City
-http://38.210.179.24:999#家宽_Mexico_Jacala
-http://181.235.239.108:999#家宽_Colombia_Bogota
-https://88.135.143.159:443#家宽_Latvia_Riga
-http://150.228.115.209:3129#家宽_United_Kingdom_London
-http://103.189.250.87:8080#家宽_Indonesia_Banyuwangi
-socks5://178.44.207.72:1080#家宽_Russia_Novotroitsk
-https://83.13.36.250:443#家宽_Poland_Bialystok
+http://170.246.146.192:8080#家宽_Brazil_Arapongas
+http://14.225.36.170:3128#家宽_Vietnam_Hanoi
+socks5://145.223.68.204:1080#家宽_Ecuador_Quito
+socks5://92.47.117.229:1080#家宽_Kazakhstan_Ust-Kamenogorsk
+socks5://171.232.51.177:5000#家宽_Vietnam_Ho_Chi_Minh_City
+socks5://171.235.35.176:5000#家宽_Vietnam_Ho_Chi_Minh_City
+socks5://59.10.62.212:1080#家宽_South_Korea_Seoul
+http://160.22.206.17:8082#家宽_Indonesia_Jakarta
+http://58.136.216.99:8080#家宽_Thailand_Bangkok

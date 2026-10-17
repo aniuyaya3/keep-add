@@ -1,1 +1,4 @@
-socks5://77.35.30.197:1080#家宽_Russia_Anuchino
+https://50.106.12.147:8443#家宽_United_States_Everett
+socks5://23.94.252.18:9000#家宽_Italy_Piove_di_Sacco-Piovega
+socks5://109.194.18.99:1080#家宽_Russia_Shelekhov
+http://42.62.177.58:8181#家宽_Indonesia_Mataram

@@ -1,10 +1,6 @@
-http://45.179.200.46:999#家宽_Colombia_Bogota
-http://45.179.200.20:999#家宽_Colombia_Bogota
-http://45.179.200.25:999#家宽_Colombia_Bogota
-http://45.179.200.27:999#家宽_Colombia_Bogota
-socks5://31.162.191.87:1080#家宽_Russia_Surgut
-socks5://31.162.173.30:1080#家宽_Russia_Uray
-http://45.179.200.23:999#家宽_Colombia_Bogota
-socks5://46.147.178.4:1080#家宽_Russia_Izhevsk
-http://45.179.200.24:999#家宽_Colombia_Bogota
-http://45.179.200.17:999#家宽_Colombia_Bogota
+http://148.224.115.38:999#家宽_Mexico_Coyoacan
+http://124.121.87.38:8080#家宽_Thailand_Samut_Prakan
+http://42.62.177.58:8181#家宽_Indonesia_Mataram
+http://113.212.84.106:3128#家宽_India_Mumbai
+http://180.93.118.237:8888#家宽_Vietnam_Ho_Chi_Minh_City
+http://103.172.120.188:8989#家宽_Indonesia_Purwodadi

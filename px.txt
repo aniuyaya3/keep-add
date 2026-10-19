@@ -1,6 +1,11 @@
-http://148.224.115.38:999#家宽_Mexico_Coyoacan
-http://124.121.87.38:8080#家宽_Thailand_Samut_Prakan
-http://42.62.177.58:8181#家宽_Indonesia_Mataram
-http://113.212.84.106:3128#家宽_India_Mumbai
-http://180.93.118.237:8888#家宽_Vietnam_Ho_Chi_Minh_City
-http://103.172.120.188:8989#家宽_Indonesia_Purwodadi
+https://216.49.122.1:443#家宽_United_States_Ferdinand
+http://5.160.103.43:80#家宽_Iran_Tehran
+socks5://118.68.129.240:20001#家宽_Vietnam_Hanoi
+socks5://118.68.129.224:20001#家宽_Vietnam_Hanoi
+socks5://118.68.129.54:20001#家宽_Vietnam_Hanoi
+http://5.160.103.44:80#家宽_Iran_Tehran
+http://5.160.83.178:8080#家宽_Iran_Tehran
+socks5://176.111.253.154:1080#家宽_Russia_Pereslavl'-Zalesskiy
+http://177.87.126.38:8080#家宽_Brazil_Segredo
+socks5://118.68.129.209:20001#家宽_Vietnam_Hanoi
+http://177.87.126.39:8080#家宽_Brazil_Segredo

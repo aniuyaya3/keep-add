@@ -1,7 +1,7 @@
-socks5://69.24.142.2:1081#家宽_United_States_Salt_Lake_City
-http://163.52.18.206:8087#家宽_Philippines_San_Juan
-http://178.150.3.232:88#家宽_Ukraine_Kyiv
-http://178.182.229.166:8080#家宽_Poland_Lubin
-https://109.226.183.15:443#家宽_Germany_Meyenburg
-http://163.52.18.202:8087#家宽_Philippines_San_Juan
-http://186.225.54.142:8089#家宽_Brazil_Sobral
+socks5://38.86.152.59:1080#家宽_United_States_Miami
+http://190.235.208.51:8081#家宽_Peru_Lima
+socks5://92.241.117.206:1080#家宽_Russia_Smolensk
+http://184.22.2.166:8080#家宽_Thailand_Bangkok
+http://184.22.130.49:8080#家宽_Thailand_Hat_Yai
+http://171.229.248.49:8080#家宽_Vietnam_Hanoi
+socks5://171.245.71.144:1088#家宽_Vietnam_Hanoi

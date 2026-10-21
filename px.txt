@@ -1,9 +1,6 @@
-http://154.21.207.179:3128#家宽_United_States_Los_Angeles
-http://180.183.28.78:18080#家宽_Thailand_Bangkok
-http://180.183.166.58:3128#家宽_Thailand_Mueang_Nonthaburi
-http://180.183.29.43:8080#家宽_Thailand_Bangkok
-http://180.183.164.161:8080#家宽_Thailand_Mueang_Nonthaburi
-socks5://195.174.185.61:1080#家宽_Turkey_Ankara
-socks5://188.211.161.45:1080#家宽_United_Kingdom_London
-http://180.183.106.152:8080#家宽_Thailand_Pathum_Thani
-http://180.183.25.59:18080#家宽_Thailand_Bangkok
+socks5://77.51.62.128:1080#家宽_Russia_Lyubertsy
+http://103.154.170.249:8383#家宽_Indonesia_Tabing
+http://131.255.8.46:9090#家宽_Brazil_Manaus
+socks5://79.134.4.225:1080#家宽_Russia_Magnitogorsk
+https://210.116.50.91:443#家宽_South_Korea_Seoul
+http://103.154.171.30:8383#家宽_Indonesia_Padang

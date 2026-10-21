@@ -1,7 +1,9 @@
-socks5://38.86.152.59:1080#家宽_United_States_Miami
-http://190.235.208.51:8081#家宽_Peru_Lima
-socks5://92.241.117.206:1080#家宽_Russia_Smolensk
-http://184.22.2.166:8080#家宽_Thailand_Bangkok
-http://184.22.130.49:8080#家宽_Thailand_Hat_Yai
-http://171.229.248.49:8080#家宽_Vietnam_Hanoi
-socks5://171.245.71.144:1088#家宽_Vietnam_Hanoi
+http://154.21.207.179:3128#家宽_United_States_Los_Angeles
+http://180.183.28.78:18080#家宽_Thailand_Bangkok
+http://180.183.166.58:3128#家宽_Thailand_Mueang_Nonthaburi
+http://180.183.29.43:8080#家宽_Thailand_Bangkok
+http://180.183.164.161:8080#家宽_Thailand_Mueang_Nonthaburi
+socks5://195.174.185.61:1080#家宽_Turkey_Ankara
+socks5://188.211.161.45:1080#家宽_United_Kingdom_London
+http://180.183.106.152:8080#家宽_Thailand_Pathum_Thani
+http://180.183.25.59:18080#家宽_Thailand_Bangkok

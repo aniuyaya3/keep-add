@@ -1,8 +1,7 @@
-socks5://76.110.230.86:1080#家宽_United_States_Jupiter
-http://181.129.83.51:999#家宽_Colombia_Medellin
-http://204.157.147.134:999#家宽_Colombia_Mocoa
-socks5://178.66.148.161:1080#家宽_Russia_Saint_Petersburg
-socks5://163.123.212.92:1080#家宽_United_States_Monticello
-socks5://85.88.180.9:1080#家宽_Russia_Moscow
-socks5://171.241.154.83:5000#家宽_Vietnam_Thai_Binh
-http://181.129.244.4:999#家宽_Colombia_Cali
+http://154.18.255.85:12329#家宽_Indonesia_Karawang
+http://154.18.255.47:8097#家宽_Indonesia_Karawang
+http://154.18.255.63:12329#家宽_Indonesia_Karawang
+http://175.106.13.114:8080#家宽_Indonesia_Jakarta
+http://103.154.76.165:8181#家宽_Indonesia_Anjani_Barat
+http://118.103.236.153:8080#家宽_Pakistan_Karachi
+socks5://115.79.225.22:5001#家宽_Vietnam_Ho_Chi_Minh_City

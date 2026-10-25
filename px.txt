@@ -1,5 +1,5 @@
-socks5://203.231.254.166:5555#家宽_South_Korea_Seoul
-http://38.58.117.123:8081#家宽_Indonesia_Jakarta
-http://184.22.2.166:8080#家宽_Thailand_Bangkok
-http://202.40.185.174:30550#家宽_Bangladesh_Chattogram
-socks5://179.41.12.149:1080#家宽_Argentina_Buenos_Aires
+http://46.246.169.181:8080#家宽_Greece_Athens
+socks5://38.246.226.33:30001#家宽_United_States_Miami
+https://82.59.90.27:443#家宽_Italy_San_Paolo_Bel_Sito
+http://118.71.187.6:80#家宽_Vietnam_Hanoi
+socks5://38.246.226.244:30001#家宽_United_States_Hialeah

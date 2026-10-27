@@ -416,6 +416,9 @@ class BoundedTee:
 
 
 dead_ips = {}
+# 失败计数与黑名单解耦：应急释放只弹出 dead_ips（解除冷却），保留计数，
+# 使“释放→再失败”的节点冷却继续指数上升，最终达到上限彻底出局，避免无限慢循环。
+failure_counts = {}
 
 last_switch_timestamps = {0: 0}
 global_node_reservoir = {}
@@ -466,10 +469,11 @@ def is_ip_blacklisted(ip):
 
 def add_to_blacklist(ip, country, reason="fault", duration=60):
     # 分级冷却：同一节点连续失败的次数越高，冷却越长（指数退避，上限 1 小时）。
+    # 计数存于独立的 failure_counts，应急释放解除冷却时不清零，防止“释放→失败”慢循环。
     # 成功连接后请调用 clear_failure(ip) 清除计数，避免好节点被长期边缘化。
     base = _COOL_BASE.get(reason, duration)
-    prev = dead_ips.get(ip, {})
-    count = prev.get("count", 0) + 1
+    count = failure_counts.get(ip, 0) + 1
+    failure_counts[ip] = count
     # 修正：上限取 max(3600, base)。原写死 3600 会把 datacenter 的 7200s(2h) 基准“吃掉”，
     # 导致“日志说冷却 2 小时、实际只冷却 1 小时”的不一致；现在 datacenter 稳定 2h，其余仍以 1h 封顶。
     cap = max(3600, base)
@@ -486,6 +490,7 @@ def add_to_blacklist(ip, country, reason="fault", duration=60):
 def clear_failure(ip):
     """连接成功后清除失败冷却计数，防止偶尔失败一次的好节点被长期边缘化。"""
     dead_ips.pop(ip, None)
+    failure_counts.pop(ip, None)
 
 
 def load_golden_nodes():
@@ -1210,7 +1215,7 @@ def maintain_pool():
                                 dead_ips.pop(bip, None)
                                 _recent_released[bip] = time.time()   # 记入“刚释放”名单，120s 内回避复选
                             print(f"[!] ⚡ 区域紧急熔断：[{target_country}] 储备枯竭，已应急释放 {len(releasable)} 个近到期节点救场！", flush=True)
-                            candidates = [n for n in (all_pool_nodes + all_golden_nodes) if n["country"] == target_country and n["ip"] not in used_ips and not is_ip_blacklisted(n["ip"])]
+                            candidates = [n for n in (all_pool_nodes + all_golden_nodes) if n["country"] == target_country and n["ip"] not in used_ips and not is_ip_blacklisted(n["ip"]) and n["ip"] not in golden_banned]
                 # 优化：优先避开 120s 内“刚被应急释放”的节点——刚判失败的节点回池后立刻复用极易再次踩坑；
                 # 若全部都在回避期内则退回原名单，保证不会因此空转。同时顺带清理过期回避条目。
                 if len(_recent_released) > 256:

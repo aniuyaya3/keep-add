@@ -287,10 +287,12 @@ MANAGER_LOG_FILE = WORKSPACE / "manager.log"
 GOLDEN_NODES_FILE = WORKSPACE / "golden_nodes.json"
 golden_nodes = {}
 golden_lock = threading.Lock()
-# 金库（极品保留库）保鲜机制：容量上限 + 淘汰到半（FIFO by added_at）
+# 金库（极品保留库）容量机制：容量上限 + 淘汰到半（FIFO by added_at）
 GOLDEN_MAX = 50        # 金库节点数上限
 GOLDEN_TRIM_TO = 25    # 超上限时保留最新的 25 个，淘汰其余最旧
-GOLDEN_TTL = 96 * 3600 # 金库节点保鲜时长：added_at 超过 96h 自动清理（防僵尸节点长期占位）
+# 金库永久禁用名单：节点一旦失效立即移出金库并记入此名单，永不重新回收
+GOLDEN_BANNED_FILE = WORKSPACE / "golden_banned.json"
+golden_banned = set()
 AUTO_DNS_HEAL = True   # 隧道存活但 DNS 异常时，是否自动把 /etc/resolv.conf 补为公共 DNS（仅在无公共解析器时动作）
 RELEASED_AVOID_SEC = 120  # 应急释放的节点在多少秒内被“回避再次当选”（避免刚失败节点立刻回池重复踩坑）
 # “掉线→上线”延迟优化参数
@@ -425,7 +427,6 @@ _last_harvest_time = 0
 # 优化：国别退避与日志节流（减少空转与刷屏）
 _country_exhausted = {}   # country -> 退避到期时间戳；该国别无候选时短时跳过该槽位，避免每 5s 空转刷屏
 _last_reservoir_log = 0.0 # 蓄水池日志节流（原每 5s 打印一次，现约 60s 一次）
-_last_golden_sweep = 0.0  # 金库 TTL 清理节流
 _recent_released = {}     # ip -> 应急释放时间戳；用于“刚释放节点 120s 回避”，防止失败节点立刻回池
 
 
@@ -496,6 +497,14 @@ def load_golden_nodes():
             print(f"[*] 成功加载，当前储备历史高质节点数: {len(golden_nodes)}", flush=True)
     except:
         pass
+    global golden_banned
+    try:
+        if GOLDEN_BANNED_FILE.exists():
+            with open(GOLDEN_BANNED_FILE, 'r') as f:
+                golden_banned = set(json.load(f))
+            print(f"[*] 成功加载金库永久禁用名单: {len(golden_banned)} 个", flush=True)
+    except:
+        pass
 
 
 def save_golden_nodes():
@@ -506,8 +515,20 @@ def save_golden_nodes():
         pass
 
 
+def save_golden_banned():
+    try:
+        with open(GOLDEN_BANNED_FILE, 'w') as f:
+            json.dump(sorted(golden_banned), f)
+    except:
+        pass
+
+
 def add_golden_node(node):
     with golden_lock:
+        # 永久禁用名单中的节点绝不重新回收进金库（失效即永久淘汰）
+        if node["ip"] in golden_banned:
+            print(f"[-] 节点 {node['ip']} 已在金库永久禁用名单，跳过回收", flush=True)
+            return
         # 记录“近期成功次数”作为质量权重：同一节点被反复验证可用则权重更高，
         # 选点时优先于仅凭 ping 排序的新节点（ping 低但常掉线的节点不再抢占先手）。
         prev = golden_nodes.get(node["ip"]) or {}
@@ -529,29 +550,16 @@ def add_golden_node(node):
     save_golden_nodes()
 
 
-def remove_golden_node(ip):
+def remove_golden_node(ip, reason="fault"):
+    """金库节点失效处理：立即移出金库并记入失效排除名单。
+    被排除的节点不再参与金库回收，也不进入蓄水池竞选；但不进 dead_ips 黑名单。"""
     with golden_lock:
         if ip in golden_nodes:
             del golden_nodes[ip]
+        golden_banned.add(ip)
     save_golden_nodes()
-
-
-def expire_golden_nodes():
-    """金库 TTL 清理：剔除 added_at 超过 GOLDEN_TTL(96h) 的陈旧节点，
-    避免“免死特权”的旧 IP 长期占位、在偏好排序里拖慢打通。"""
-    global golden_nodes
-    if not golden_nodes:
-        return
-    now = time.time()
-    removed = []
-    with golden_lock:
-        for ip, meta in list(golden_nodes.items()):
-            if now - meta.get("added_at", 0) > GOLDEN_TTL:
-                del golden_nodes[ip]
-                removed.append(ip)
-    if removed:
-        save_golden_nodes()
-        print(f"[*] 金库 TTL 清理：移除 {len(removed)} 个超过 {GOLDEN_TTL // 3600}h 的陈旧节点", flush=True)
+    save_golden_banned()
+    print(f"[*] 金库节点 {ip} 失效({reason})，已移出金库并排除出蓄水池竞选，不再回收", flush=True)
 
 
 def ensure_public_dns():
@@ -801,7 +809,6 @@ def setup_env():
         AUTH_FILE.write_text("vpn\\nvpn\\n")
         AUTH_FILE.chmod(0o600)
     load_golden_nodes()
-    expire_golden_nodes()   # 启动即清理超期金库节点
 
 
 def harvest_snapshot_nodes() -> list:
@@ -927,20 +934,17 @@ def connect_slot(slot: int, node: dict, epoch: int, is_manual: bool):
                 except:
                     pass
                 if not is_residential:
-                    is_history_golden = False
-                    with golden_lock:
-                        if node["ip"] in golden_nodes:
-                            is_history_golden = True
-                    if is_history_golden:
-                        print(f"[*] 单端口 ({node['country']}) 虽为机房IP，但具备免死特权，强制放行: {node['ip']}", flush=True)
-                    else:
-                        print(f"[-] 单端口 ({node['country']}) 检测为机房IP，暂时隔离冷却(2小时): {node['ip']}", flush=True)
-                        if _stale():
-                            _kill_proc(process)
-                            return
+                    # 所有可用节点必须为纯正住宅属性：机房/数据中心 IP 一律拒绝，
+                    # 金库节点同样不豁免（无免死特权），并按失效处理移出金库。
+                    print(f"[-] 单端口 ({node['country']}) 检测为机房IP，拒绝使用并冷却(2小时): {node['ip']}", flush=True)
+                    if node["ip"] in golden_nodes:
+                        remove_golden_node(node["ip"], reason="datacenter")
+                    if _stale():
                         _kill_proc(process)
-                        add_to_blacklist(node["ip"], node["country"], reason="datacenter", duration=7200)
                         return
+                    _kill_proc(process)
+                    add_to_blacklist(node["ip"], node["country"], reason="datacenter", duration=7200)
+                    return
             setup_routing(slot)
             if not is_manual and youtube_check_enabled:
                 print(f"[*] 单端口 ({node['country']}) 核验通过，执行 YouTube 业务连通性测试...", flush=True)
@@ -960,8 +964,7 @@ def connect_slot(slot: int, node: dict, epoch: int, is_manual: bool):
                     add_to_blacklist(node["ip"], node["country"], reason="fault", duration=60)
                     # 组合2：金库节点业务核验失败 → 移出金库，避免僵尸节点反复当选
                     if not is_manual and node["ip"] in golden_nodes:
-                        remove_golden_node(node["ip"])
-                        print(f"[*] 金库节点 {node['ip']} 业务不可用，已移出保留库", flush=True)
+                        remove_golden_node(node["ip"], reason="youtube_check")
                     return
             if not is_manual:
                 add_golden_node(node)
@@ -994,8 +997,7 @@ def connect_slot(slot: int, node: dict, epoch: int, is_manual: bool):
                 add_to_blacklist(node["ip"], node["country"], reason="fault", duration=60)
                 # 组合2：金库节点拨号失败 → 移出金库，避免失效旧IP反复试错
                 if node["ip"] in golden_nodes:
-                    remove_golden_node(node["ip"])
-                    print(f"[*] 金库节点 {node['ip']} 拨号失败，已移出保留库", flush=True)
+                    remove_golden_node(node["ip"], reason="dial_fail")
     finally:
         # 过期线程不得清除新代际的 connecting 标记（否则会导致重复拨号）
         with pool_lock:
@@ -1089,12 +1091,11 @@ def health_check_loop():
                     # 分级冷却：失败越多次，冷却越久
                     add_to_blacklist(ip, country, reason="fault")
                     # 组合2 一致性：健康检查确认掉线的节点同样移出金库，
-                    # 避免其“免死特权”在后续被反复当选、空耗拨号。
+                    # 失效即排除，不再回收复用。
                     with golden_lock:
                         _was_golden = ip in golden_nodes
                     if _was_golden:
-                        remove_golden_node(ip)
-                        print(f"[*] 金库节点 {ip} 健康检查掉线，已移出保留库", flush=True)
+                        remove_golden_node(ip, reason="health_check")
                 try:
                     process.terminate()
                     process.wait(timeout=2)
@@ -1117,7 +1118,7 @@ def health_check_loop():
 
 def maintain_pool():
     global dead_ips, global_node_reservoir, golden_nodes, manual_status
-    global _country_exhausted, _last_reservoir_log, _last_golden_sweep
+    global _country_exhausted, _last_reservoir_log
     while True:
         snapshot = harvest_snapshot_nodes()
         with reservoir_lock:
@@ -1130,11 +1131,7 @@ def maintain_pool():
             # 日志节流：原每 5s 打印一次会淹没 manager.log 与面板（面板只显示最新 50 行）；现约 60s 一次
             if now - _last_reservoir_log >= 60:
                 _last_reservoir_log = now
-                print(f"[*] ⚡ 蓄水池循环，当前大池常驻: {len(global_node_reservoir)} 个 (极品保留库: {len(golden_nodes)} 个)", flush=True)
-        # 金库 TTL 清理：约每 10 分钟一次
-        if now - _last_golden_sweep >= 600:
-            _last_golden_sweep = now
-            expire_golden_nodes()
+                print(f"[*] ⚡ 蓄水池循环，当前大池常驻: {len(global_node_reservoir)} 个 (极品保留库: {len(golden_nodes)} 个, 失效排除: {len(golden_banned)} 个)", flush=True)
         empty_slots = []
         with pool_lock:
             for slot, info in pool.items():
@@ -1161,9 +1158,9 @@ def maintain_pool():
                         remain = int(_manual_next_retry_at - time.time()) + 1
                         _set_manual_status(f"retrying: {remain}s后重拨")
                     else:
-                        node = next((n for n in all_pool_nodes if n["ip"] == manual_node_ip), None)
+                        node = next((n for n in all_pool_nodes if n["ip"] == manual_node_ip and n["ip"] not in golden_banned), None)
                         if not node:
-                            node = next((n for n in all_golden_nodes if n["ip"] == manual_node_ip), None)
+                            node = next((n for n in all_golden_nodes if n["ip"] == manual_node_ip and n["ip"] not in golden_banned), None)
                         if node is None:
                             _set_manual_status("waiting: 候选中无此节点")
                         elif node["ip"] in used_ips:
@@ -1186,9 +1183,9 @@ def maintain_pool():
                 target_country = dynamic_slot_map.get(slot, "JP")
                 if time.time() < _country_exhausted.get(target_country, 0):
                     continue   # 国别退避中：该国别无候选时短时跳过本站槽位，避免每 5s 空转刷屏
-                candidates = [n for n in all_pool_nodes if n["country"] == target_country and n["ip"] not in used_ips and not is_ip_blacklisted(n["ip"])]
+                candidates = [n for n in all_pool_nodes if n["country"] == target_country and n["ip"] not in used_ips and not is_ip_blacklisted(n["ip"]) and n["ip"] not in golden_banned]
                 if not candidates:
-                    golden_candidates = [n for n in all_golden_nodes if n["country"] == target_country and n["ip"] not in used_ips and not is_ip_blacklisted(n["ip"])]
+                    golden_candidates = [n for n in all_golden_nodes if n["country"] == target_country and n["ip"] not in used_ips and not is_ip_blacklisted(n["ip"]) and n["ip"] not in golden_banned]
                     if golden_candidates:
                         print(f"[*] 🏆 主池枯竭，触发！正在提取历史高质 [{target_country}] 节点...", flush=True)
                         candidates = golden_candidates

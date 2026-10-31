@@ -1,4 +1,9 @@
-http://143.202.97.172:1982#家宽_Argentina_El_Jaguel
-http://80.254.124.253:81#家宽_Russia_Rostov-na-Donu
-http://103.146.221.95:2020#家宽_Bangladesh_Dhaka
-http://157.15.187.103:8070#家宽_Indonesia_Genteng
+https://185.71.171.157:443#家宽_Germany_Berlin
+socks5://176.119.168.162:1080#家宽_Russia_Admiralteisky
+socks5://116.101.22.139:5003#家宽_Vietnam_Hanoi
+socks5://171.227.182.165:5000#家宽_Vietnam_Hoan_Kiem
+socks5://14.245.194.98:1080#家宽_Vietnam_Ho_Chi_Minh_City
+http://103.148.148.157:1020#家宽_Bangladesh_Dhaka
+socks5://109.74.33.172:1080#家宽_Yemen_Sanaa
+socks5://193.165.115.78:1080#家宽_Czechia_Ostrava
+socks5://138.128.193.193:11080#家宽_United_States_Menlo_Park

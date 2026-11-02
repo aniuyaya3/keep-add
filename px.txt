@@ -1,3 +1,3 @@
-http://181.114.125.214:3128#家宽_Bolivia_La_Paz
-https://109.250.178.74:443#家宽_Germany_Nuernberg
-http://190.123.83.137:999#家宽_Argentina_Buenos_Aires
+http://201.165.179.78:999#家宽_Mexico_Guadalajara
+socks5://103.13.234.12:1080#家宽_Indonesia_Jakarta
+http://179.1.196.133:999#家宽_Colombia_Bogota

@@ -1,10 +1,1 @@
-socks5://170.249.3.142:1080#家宽_United_States_Marquette
-http://95.190.193.74:3128#家宽_Russia_Kemerovo
-socks5://38.226.243.179:1080#家宽_Indonesia_Jakarta
-socks5://200.187.170.99:1080#家宽_Brazil_Uberlandia
-socks5://116.97.141.128:1080#家宽_Vietnam_Ho_Chi_Minh_City
-socks5://117.0.195.35:1080#家宽_Vietnam_Hanoi
-http://45.198.10.189:9191#家宽_Indonesia_Jakarta
-http://38.51.232.54:999#家宽_Colombia_Cali
-http://49.156.44.116:8080#家宽_Cambodia_Phnom_Penh
-http://89.43.132.242:8080#家宽_Syria_Ad_Dana
+socks5://131.117.163.133:1080#家宽_Yemen_Sanaa

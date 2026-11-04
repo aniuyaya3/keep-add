@@ -1,1 +1,6 @@
-socks5://131.117.163.133:1080#家宽_Yemen_Sanaa
+https://74.103.66.15:443#家宽_United_States_Bel_Air
+http://45.65.224.74:999#家宽_Argentina_Moron
+socks5://82.140.237.66:1080#家宽_Russia_Torzhok
+http://203.86.122.227:3128#家宽_Hong_Kong_Jordan
+https://46.170.93.122:443#家宽_Poland_Mucharz
+http://45.5.119.17:999#家宽_Guatemala_Guatemala_City

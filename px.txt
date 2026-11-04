@@ -1,6 +1,6 @@
-https://74.103.66.15:443#家宽_United_States_Bel_Air
-http://45.65.224.74:999#家宽_Argentina_Moron
-socks5://82.140.237.66:1080#家宽_Russia_Torzhok
-http://203.86.122.227:3128#家宽_Hong_Kong_Jordan
-https://46.170.93.122:443#家宽_Poland_Mucharz
-http://45.5.119.17:999#家宽_Guatemala_Guatemala_City
+http://187.172.212.115:999#家宽_Mexico_Tlalpan
+http://79.154.7.58:8080#家宽_Spain_Barcelona
+http://79.129.215.58:18080#家宽_Greece_Pallini
+http://45.176.171.6:9898#家宽_Brazil_Natal
+socks5://109.200.160.130:10800#家宽_Yemen_Sanaa
+socks5://116.111.232.29:60000#家宽_United_States_Las_Vegas

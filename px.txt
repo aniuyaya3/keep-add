@@ -1,6 +1,3 @@
-http://187.172.212.115:999#家宽_Mexico_Tlalpan
-http://79.154.7.58:8080#家宽_Spain_Barcelona
-http://79.129.215.58:18080#家宽_Greece_Pallini
-http://45.176.171.6:9898#家宽_Brazil_Natal
-socks5://109.200.160.130:10800#家宽_Yemen_Sanaa
-socks5://116.111.232.29:60000#家宽_United_States_Las_Vegas
+socks5://58.187.16.188:1080#家宽_Vietnam_Hanoi
+socks5://14.224.169.51:1080#家宽_Vietnam_Hanoi
+socks5://185.229.194.223:1080#家宽_Russia_Yekaterinburg

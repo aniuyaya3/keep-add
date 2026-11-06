@@ -1,4 +1,5 @@
-http://113.11.179.180:8080#家宽_Indonesia_Kudus
-http://113.11.179.213:8080#家宽_Indonesia_Kudus
-https://92.65.41.227:443#家宽_The_Netherlands_Vlaardingen
-socks5://103.126.174.233:1080#家宽_Indonesia_Bandar_Lampung
+https://189.129.4.223:443#家宽_Mexico_Tlalpan
+https://200.52.72.14:443#家宽_Mexico_Mexico_City
+http://61.230.108.53:3128#家宽_Taiwan_New_Taipei_City
+socks5://109.73.181.224:7080#家宽_Italy_Termoli
+http://209.255.132.243:8080#家宽_United_States_Katy

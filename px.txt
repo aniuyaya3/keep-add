@@ -1,5 +1,6 @@
-https://189.129.4.223:443#家宽_Mexico_Tlalpan
-https://200.52.72.14:443#家宽_Mexico_Mexico_City
-http://61.230.108.53:3128#家宽_Taiwan_New_Taipei_City
-socks5://109.73.181.224:7080#家宽_Italy_Termoli
-http://209.255.132.243:8080#家宽_United_States_Katy
+http://181.213.93.212:8080#家宽_Brazil_Sao_Paulo
+http://2.192.133.128:8080#家宽_Italy_Milan
+http://1.0.250.248:8080#家宽_Thailand_Songkhla
+socks5://118.68.245.137:1080#家宽_Vietnam_Hanoi
+socks5://113.22.135.167:1080#家宽_Vietnam_Ho_Chi_Minh_City
+socks5://103.66.62.187:1080#家宽_Indonesia_Jambi_City

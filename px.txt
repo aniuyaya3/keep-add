@@ -1,6 +1,0 @@
-http://181.213.93.212:8080#家宽_Brazil_Sao_Paulo
-http://2.192.133.128:8080#家宽_Italy_Milan
-http://1.0.250.248:8080#家宽_Thailand_Songkhla
-socks5://118.68.245.137:1080#家宽_Vietnam_Hanoi
-socks5://113.22.135.167:1080#家宽_Vietnam_Ho_Chi_Minh_City
-socks5://103.66.62.187:1080#家宽_Indonesia_Jambi_City

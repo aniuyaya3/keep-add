@@ -1,1 +1,7 @@
-socks5://46.32.80.189:1080#家宽_Russia_Saint_Petersburg
+http://103.139.126.41:3128#家宽_Indonesia_Pamanukan
+socks5://14.233.84.124:1080#家宽_Vietnam_Da_Nang
+http://38.172.181.0:999#家宽_Venezuela_Barquisimeto
+socks5://27.76.211.201:5003#家宽_Vietnam_Hoan_Kiem
+http://185.238.238.169:58080#家宽_Poland_Przeworno
+http://160.250.123.94:8080#家宽_Pakistan_Lahore
+http://38.183.215.197:8080#家宽_Venezuela_Valle_de_La_Pascua

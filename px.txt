@@ -1,5 +1,1 @@
-socks5://178.183.230.79:1080#家宽_Poland_Warsaw
-http://179.126.30.45:8080#家宽_Brazil_Uberlandia
-http://223.204.176.79:3128#家宽_Thailand_Nakhon_Sawan
-socks5://178.178.11.151:1080#家宽_Russia_Moscow
-http://223.204.176.37:3128#家宽_Thailand_Nakhon_Sawan
+socks5://46.32.80.189:1080#家宽_Russia_Saint_Petersburg

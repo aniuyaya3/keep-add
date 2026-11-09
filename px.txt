@@ -1,4 +1,5 @@
-socks5://64.83.26.142:1080#家宽_United_States_Los_Angeles
-https://180.131.255.118:443#家宽_Japan_Urasoe
-socks5://171.236.95.10:1080#家宽_Vietnam_Bac_Giang
-https://202.183.37.189:443#家宽_Philippines_Quezon_City
+socks5://59.13.36.51:1080#家宽_South_Korea_Suwon
+http://188.116.133.4:3128#家宽_Russia_Orel
+http://177.71.92.25:8080#家宽_Brazil_Petrolina
+socks5://113.176.164.68:1080#家宽_Vietnam_Ho_Chi_Minh_City
+socks5://61.190.77.75:1080#家宽_Taiwan_Taipei

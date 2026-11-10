@@ -1,5 +1,8 @@
-socks5://59.13.36.51:1080#家宽_South_Korea_Suwon
-http://188.116.133.4:3128#家宽_Russia_Orel
-http://177.71.92.25:8080#家宽_Brazil_Petrolina
-socks5://113.176.164.68:1080#家宽_Vietnam_Ho_Chi_Minh_City
-socks5://61.190.77.75:1080#家宽_Taiwan_Taipei
+socks5://217.24.162.101:1080#家宽_Ukraine_Dnipro
+socks5://179.241.115.176:1080#家宽_Brazil_Sao_Paulo
+socks5://80.242.208.130:10808#家宽_Kazakhstan_Almaty
+socks5://14.232.136.188:1080#家宽_Vietnam_Hanoi
+http://103.69.59.38:3128#家宽_Bangladesh_Dohazari
+socks5://83.219.252.29:1080#家宽_Russia_Moscow
+socks5://116.101.73.52:1082#家宽_Vietnam_Hanoi
+socks5://116.101.73.161:1080#家宽_Vietnam_Hanoi

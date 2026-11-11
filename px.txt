@@ -1,9 +1,3 @@
-http://194.24.129.22:18080#家宽_Austria_Vienna
-http://45.176.89.245:8080#家宽_Argentina_San_Carlos_de_Bariloche
-http://125.212.128.38:3128#家宽_Vietnam_Hai_BaTrung
-http://125.27.91.6:8080#家宽_Thailand_Bangkok
-socks5://81.23.182.162:1080#家宽_Russia_Tolyatti
-http://125.27.140.199:888#家宽_Thailand_Bangkok
-http://223.123.38.58:3128#家宽_Pakistan_Islamabad
-socks5://171.232.187.232:1080#家宽_Vietnam_Ho_Chi_Minh_City
-http://2.87.228.161:18080#家宽_Greece_Athens
+socks5://1.55.209.16:1080#家宽_Vietnam_Hanoi
+http://113.160.235.248:19132#家宽_Vietnam_Da_Nang
+socks5://177.69.198.219:1080#家宽_Brazil_Uberlandia

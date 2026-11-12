@@ -1,3 +1,8 @@
-http://186.83.11.93:3128#家宽_Colombia_Bogota
-http://117.5.162.133:8080#家宽_Vietnam_Ho_Chi_Minh_City
-http://185.194.121.232:3128#家宽_France_Pornic
+https://152.44.176.163:443#家宽_United_States_Newport
+https://166.157.172.235:8443#家宽_United_States_Hickory_Hills
+https://166.157.172.234:8443#家宽_United_States_Hickory_Hills
+https://82.66.57.57:443#家宽_France_Saint-Fons
+https://83.135.88.47:443#家宽_Germany_Chemnitz
+http://27.147.155.206:12051#家宽_Bangladesh_Dhaka
+socks5://46.50.135.50:1080#家宽_Russia_Omsk
+http://169.148.78.24:8080#家宽_Saudi_Arabia_Jeddah

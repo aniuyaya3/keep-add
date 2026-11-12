@@ -1,8 +1,6 @@
-https://152.44.176.163:443#家宽_United_States_Newport
-https://166.157.172.235:8443#家宽_United_States_Hickory_Hills
-https://166.157.172.234:8443#家宽_United_States_Hickory_Hills
-https://82.66.57.57:443#家宽_France_Saint-Fons
-https://83.135.88.47:443#家宽_Germany_Chemnitz
-http://27.147.155.206:12051#家宽_Bangladesh_Dhaka
-socks5://46.50.135.50:1080#家宽_Russia_Omsk
-http://169.148.78.24:8080#家宽_Saudi_Arabia_Jeddah
+http://189.51.171.229:999#家宽_Mexico_Merida
+https://91.184.178.123:443#家宽_Germany_Waldorf
+http://189.28.187.15:8080#家宽_Brazil_Criciuma
+socks5://184.75.208.234:2001#家宽_Taiwan_Taipei
+socks5://113.191.189.226:1080#家宽_Vietnam_Ho_Chi_Minh_City
+https://203.177.55.254:443#家宽_Philippines_Manila

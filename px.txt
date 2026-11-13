@@ -1,7 +1,9 @@
-socks5://104.62.124.109:1080#家宽_United_States_North_Miami
-https://74.103.66.15:443#家宽_United_States_Bel_Air
-socks5://213.168.186.95:1080#家宽_Czechia_Mlada_Boleslav
-socks5://95.221.187.35:1080#家宽_Russia_Moscow
-https://176.99.164.196:443#家宽_Russia_Moscow
-http://180.183.39.159:8080#家宽_Thailand_Bangkok
-socks5://5.43.133.162:1080#家宽_Russia_Moscow
+http://148.244.86.14:999#家宽_Mexico_Mexico_City
+http://45.175.39.173:999#家宽_Venezuela_Caracas
+http://45.175.139.26:999#家宽_Colombia_Bogota
+http://116.49.156.94:8888#家宽_Hong_Kong_Hong_Kong
+http://42.119.102.171:3128#家宽_Vietnam_Hanoi
+socks5://89.189.76.237:1080#家宽_Yemen_Sanaa
+http://103.92.234.233:8080#家宽_Bangladesh_Dhaka
+http://134.35.209.188:8080#家宽_Yemen_Sanaa
+http://134.35.237.84:8080#家宽_Yemen_Sanaa

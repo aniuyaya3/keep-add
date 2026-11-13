@@ -1,6 +1,7 @@
-http://189.51.171.229:999#家宽_Mexico_Merida
-https://91.184.178.123:443#家宽_Germany_Waldorf
-http://189.28.187.15:8080#家宽_Brazil_Criciuma
-socks5://184.75.208.234:2001#家宽_Taiwan_Taipei
-socks5://113.191.189.226:1080#家宽_Vietnam_Ho_Chi_Minh_City
-https://203.177.55.254:443#家宽_Philippines_Manila
+socks5://104.62.124.109:1080#家宽_United_States_North_Miami
+https://74.103.66.15:443#家宽_United_States_Bel_Air
+socks5://213.168.186.95:1080#家宽_Czechia_Mlada_Boleslav
+socks5://95.221.187.35:1080#家宽_Russia_Moscow
+https://176.99.164.196:443#家宽_Russia_Moscow
+http://180.183.39.159:8080#家宽_Thailand_Bangkok
+socks5://5.43.133.162:1080#家宽_Russia_Moscow

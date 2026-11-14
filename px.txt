@@ -1,4 +1,10 @@
-http://1.52.203.122:8080#家宽_Vietnam_Ho_Chi_Minh_City
-socks5://94.230.44.232:1080#家宽_Russia_Staryy_Oskol
-socks5://177.106.2.74:1080#家宽_Brazil_Uberlandia
-http://103.145.161.18:8080#家宽_Indonesia_Jakarta
+http://189.154.231.204:999#家宽_Mexico_Mexico_City
+http://189.154.224.127:999#家宽_Mexico_Mexico_City
+http://189.187.132.125:999#家宽_Mexico_Mexico_City
+http://170.79.90.9:999#家宽_Colombia_Bogota
+http://170.79.90.8:999#家宽_Colombia_Bogota
+socks5://14.244.85.194:1080#家宽_Vietnam_Ho_Chi_Minh_City
+socks5://27.73.169.193:5005#家宽_Vietnam_Hanoi
+socks5://176.88.248.129:1080#家宽_Turkey_Atasehir
+socks5://89.189.76.164:1080#家宽_Yemen_Sanaa
+socks5://91.241.128.32:1080#家宽_Russia_Moscow

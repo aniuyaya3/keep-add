@@ -1,4 +1,2 @@
-https://58.26.247.226:443#家宽_Malaysia_Kuala_Lumpur
-socks5://111.95.41.184:1080#家宽_Indonesia_Jakarta
-https://203.193.169.112:443#家宽_India_Mumbai
-http://103.129.92.138:8082#家宽_Indonesia_Singosari
+socks5://94.230.44.232:1080#家宽_Russia_Staryy_Oskol
+http://1.52.57.166:3128#家宽_Vietnam_Ho_Chi_Minh_City

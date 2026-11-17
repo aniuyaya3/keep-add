@@ -1,8 +1,2 @@
-http://200.107.205.64:999#家宽_Dominican_Republic_Santiago_de_los_Caballeros
-http://187.251.145.235:999#家宽_Mexico_Coyoacan
-http://143.0.67.1:999#家宽_Argentina_Buenos_Aires
-socks5://46.160.90.7:1080#家宽_Ukraine_Kharkiv
-http://125.161.45.140:8080#家宽_Indonesia_Depok
-http://222.255.214.22:3128#家宽_Vietnam_Ho_Chi_Minh_City
-http://189.201.194.52:999#家宽_Mexico_Monterrey
-socks5://1.55.58.187:1080#家宽_Vietnam_Hanoi
+http://38.199.250.2:999#家宽_Mexico_Tuxpam_de_Rodriguez_Cano
+socks5://92.46.203.250:1080#家宽_Kazakhstan_Almaty

@@ -1,2 +1,5 @@
-http://38.199.250.2:999#家宽_Mexico_Tuxpam_de_Rodriguez_Cano
-socks5://92.46.203.250:1080#家宽_Kazakhstan_Almaty
+socks5://77.51.27.73:1080#家宽_Russia_Protvino
+socks5://77.51.75.96:1080#家宽_Russia_Moscow
+socks5://201.251.65.97:1080#家宽_Argentina_Buenos_Aires
+http://188.240.105.124:8080#家宽_Yemen_Sanaa
+http://171.4.51.164:8080#家宽_Thailand_Hua_Hin

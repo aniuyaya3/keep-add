@@ -1,6 +1,2 @@
-https://46.170.93.122:443#家宽_Poland_Mucharz
-socks5://37.192.3.175:1080#家宽_Russia_Novosibirsk
-https://45.13.104.49:443#家宽_France_Paris
-socks5://150.230.162.15:6001#家宽_United_States_San_Francisco
-http://125.230.220.40:8080#家宽_Taiwan_Taichung
-socks5://109.74.34.239:1080#家宽_Yemen_Sanaa
+http://222.111.130.73:8080#家宽_South_Korea_Seoul
+socks5://188.132.150.241:1080#家宽_Turkey_Istanbul

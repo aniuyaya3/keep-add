@@ -1,2 +1,4 @@
-http://222.111.130.73:8080#家宽_South_Korea_Seoul
-socks5://188.132.150.241:1080#家宽_Turkey_Istanbul
+http://90.248.64.237:80#家宽_United_Kingdom_Pontefract
+http://90.248.147.170:80#家宽_United_Kingdom_Bracknell
+http://90.248.194.6:80#家宽_United_Kingdom_Cardiff
+http://209.61.12.17:999#家宽_Colombia_Pasto

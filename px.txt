@@ -1,4 +1,5 @@
-http://90.248.64.237:80#家宽_United_Kingdom_Pontefract
-http://90.248.147.170:80#家宽_United_Kingdom_Bracknell
-http://90.248.194.6:80#家宽_United_Kingdom_Cardiff
-http://209.61.12.17:999#家宽_Colombia_Pasto
+http://77.121.88.25:3128#家宽_Ukraine_Zaporizhzhya
+http://187.223.136.21:999#家宽_Mexico_Tlalpan
+https://88.14.206.48:443#家宽_Spain_Bilbao
+socks5://188.113.182.218:1080#家宽_Russia_Yuzhno-Sakhalinsk
+socks5://186.233.119.183:1080#家宽_Brazil_Rio_de_Janeiro

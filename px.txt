@@ -1,3 +1,4 @@
-http://138.36.99.134:3128#家宽_Argentina_Puerto_Madryn
-socks5://219.78.223.199:5001#家宽_Hong_Kong_Hong_Kong
-http://110.168.29.109:80#家宽_Thailand_Bangkok
+socks5://95.221.165.175:1080#家宽_Russia_Moscow
+socks5://45.171.36.5:1080#家宽_Argentina_Buenos_Aires
+http://27.147.155.206:12051#家宽_Bangladesh_Dhaka
+socks5://85.30.230.146:1080#家宽_Russia_Moscow

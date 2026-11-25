@@ -1,8 +1,7 @@
-http://90.241.14.100:80#家宽_United_Kingdom_Bedworth
-http://49.156.39.242:8080#家宽_Cambodia_Phnom_Penh
-socks5://116.99.69.154:5000#家宽_Vietnam_Hanoi
-https://203.193.169.112:443#家宽_India_Mumbai
-http://59.103.44.149:3128#家宽_Pakistan_Lahore
-socks5://123.17.147.161:1080#家宽_Vietnam_Hanoi
-socks5://78.37.64.220:1080#家宽_Russia_Saint_Petersburg
-socks5://171.253.90.204:1080#家宽_Vietnam_Hanoi
+http://186.125.54.210:3128#家宽_Argentina_Buenos_Aires
+socks5://191.55.76.42:1080#家宽_Brazil_Uberlandia
+socks5://46.63.56.69:1080#家宽_Ukraine_Khmelnytskyi
+http://103.142.170.22:3128#家宽_Bangladesh_Dhaka
+https://46.170.93.122:443#家宽_Poland_Mucharz
+https://178.219.43.226:443#家宽_Russia_Moscow
+socks5://176.119.18.90:1080#家宽_Russia_Abakan

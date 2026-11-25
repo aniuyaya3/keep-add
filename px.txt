@@ -1,7 +1,8 @@
-https://206.223.183.21:443#家宽_Canada_Toronto
-socks5://113.168.206.46:1080#家宽_Vietnam_Ho_Chi_Minh_City
+http://90.241.14.100:80#家宽_United_Kingdom_Bedworth
+http://49.156.39.242:8080#家宽_Cambodia_Phnom_Penh
+socks5://116.99.69.154:5000#家宽_Vietnam_Hanoi
+https://203.193.169.112:443#家宽_India_Mumbai
+http://59.103.44.149:3128#家宽_Pakistan_Lahore
 socks5://123.17.147.161:1080#家宽_Vietnam_Hanoi
-http://2.192.101.93:8080#家宽_Italy_Milan
-http://181.233.88.209:999#家宽_Venezuela_Cabimas
-http://103.207.169.234:80#家宽_India_Mumbai
-http://49.48.97.182:8080#家宽_Thailand_Khon_Kaen
+socks5://78.37.64.220:1080#家宽_Russia_Saint_Petersburg
+socks5://171.253.90.204:1080#家宽_Vietnam_Hanoi

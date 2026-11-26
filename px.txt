@@ -1,5 +1,6 @@
-http://84.65.13.149:80#家宽_United_Kingdom_Basingstoke
-http://112.211.164.68:8080#家宽_Philippines_Pasig_City
-http://202.168.243.149:3128#家宽_Bangladesh_Dhaka
+socks5://46.242.20.165:1080#家宽_Russia_Moscow
+https://49.12.80.213:8443#家宽_Germany_Berlin
+http://205.252.123.1:999#家宽_Venezuela_Valencia
 socks5://116.101.99.241:5000#家宽_Vietnam_Hanoi
-socks5://116.101.99.237:5000#家宽_Vietnam_Hanoi
+http://94.229.241.201:3128#家宽_Russia_Moscow
+http://102.0.19.204:8080#家宽_Kenya_Nairobi

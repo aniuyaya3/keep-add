@@ -1,6 +1,2 @@
-socks5://46.242.20.165:1080#家宽_Russia_Moscow
-https://49.12.80.213:8443#家宽_Germany_Berlin
-http://205.252.123.1:999#家宽_Venezuela_Valencia
-socks5://116.101.99.241:5000#家宽_Vietnam_Hanoi
-http://94.229.241.201:3128#家宽_Russia_Moscow
-http://102.0.19.204:8080#家宽_Kenya_Nairobi
+http://49.156.44.117:8080#家宽_Cambodia_Phnom_Penh
+socks5://103.199.103.196:30000#家宽_Japan_Tokyo

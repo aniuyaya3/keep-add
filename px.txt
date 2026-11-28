@@ -1,6 +1,3 @@
-http://190.185.116.186:999#家宽_Honduras_San_Pedro_Sula
-http://167.57.154.105:3128#家宽_Uruguay_Montevideo
+socks5://109.173.126.26:2080#家宽_Russia_Moscow
+socks5://113.189.52.73:1080#家宽_Vietnam_Ho_Chi_Minh_City
 socks5://116.102.232.54:5000#家宽_Vietnam_Ho_Chi_Minh_City
-socks5://109.194.18.99:1080#家宽_Russia_Shelekhov
-socks5://116.102.235.0:5000#家宽_Vietnam_Ho_Chi_Minh_City
-http://125.163.186.134:8080#家宽_Indonesia_Semarang
